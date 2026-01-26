@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html" class="active">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="PlantDisease.html">Plant Disease</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    min-height: 95vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 70px 0;
+">
+
+  <div class="container">
+
+    <!-- Heading -->
+    <h2 style="
+        text-align:center;
+        color:#1b5e20;
+        font-size:36px;
+        font-weight:700;
+        margin-bottom:10px;
+    ">
+        🌾 Crop Recommendation
+    </h2>
+
+    <p style="
+        text-align:center;
+        color:#1565c0;
+        font-size:18px;
+        margin-bottom:40px;
+    ">
+        Find the most suitable crop for your farm based on soil & climate
+    </p>
+
+    <!-- Form Card -->
+    <div style="
+        max-width:460px;
+        margin:auto;
+        background:#ffffff;
+        padding:35px;
+        border-radius:22px;
+        box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    ">
+
+      <form method="POST" action="/crop_prediction">
+
+        <!-- Nitrogen -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Nitrogen (N)</label>
+          <input type="number" name="nitrogen"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 50"
+            required>
+        </div>
+
+        <!-- Phosphorous -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Phosphorous (P)</label>
+          <input type="number" name="phosphorous"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 40"
+            required>
+        </div>
+
+        <!-- Potassium -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Potassium (K)</label>
+          <input type="number" name="potassium"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 60"
+            required>
+        </div>
+
+        <!-- pH -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Soil pH</label>
+          <input type="number" name="ph"
+            class="form-control"
+            min="0" max="14"
+            step="0.01"
+            placeholder="Example: 6.5"
+            required>
+        </div>
+
+        <!-- Rainfall -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Rainfall (mm)</label>
+          <input type="number" name="rainfall"
+            class="form-control"
+            min="0"
+            step="0.01"
+            placeholder="Example: 250"
+            required>
+        </div>
+
+        <!-- Temperature -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Temperature (°C)</label>
+          <input type="number" name="temperature"
+            class="form-control"
+            min="0" max="100"
+            step="0.01"
+            placeholder="Example: 25"
+            required>
+        </div>
+
+        <!-- Humidity -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">Humidity (%)</label>
+          <input type="number" name="humidity"
+            class="form-control"
+            min="0" max="100"
+            step="0.01"
+            placeholder="Example: 70"
+            required>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="text-align:center; margin-top:30px;">
+          <button type="submit"
+            style="
+                background:#1b5e20;
+                color:white;
+                font-size:18px;
+                font-weight:600;
+                padding:12px 45px;
+                border:none;
+                border-radius:30px;
+                transition:0.3s;
+            ">
+            🌱 Predict Crop
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

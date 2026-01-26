@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html" class="active">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="PlantDisease.html">Plant Disease</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    min-height: 90vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 70px 0;
+">
+
+  <div class="container">
+
+    <!-- Heading -->
+    <h2 style="
+        text-align:center;
+        color:#1b5e20;
+        font-size:36px;
+        font-weight:700;
+        margin-bottom:10px;
+    ">
+        🌱 Fertilizer Recommendation
+    </h2>
+
+    <p style="
+        text-align:center;
+        color:#1565c0;
+        font-size:18px;
+        margin-bottom:40px;
+    ">
+        Get informed fertilizer advice based on your soil nutrients
+    </p>
+
+    <!-- Form Card -->
+    <div style="
+        max-width:420px;
+        margin:auto;
+        background:#ffffff;
+        padding:35px;
+        border-radius:20px;
+        box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    ">
+
+      <form method="POST" action="{{ url_for('fertilizer_recommend') }}">
+
+        <!-- Nitrogen -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">
+            Nitrogen (N)
+          </label>
+          <input type="number" name="nitrogen"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 50"
+            required
+            style="font-weight:600;">
+        </div>
+
+        <!-- Phosphorous -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">
+            Phosphorous (P)
+          </label>
+          <input type="number" name="phosphorous"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 40"
+            required
+            style="font-weight:600;">
+        </div>
+
+        <!-- Potassium -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">
+            Potassium (K)
+          </label>
+          <input type="number" name="potassium"
+            class="form-control"
+            min="0" max="100"
+            placeholder="Example: 60"
+            required
+            style="font-weight:600;">
+        </div>
+
+        <!-- Crop -->
+        <div class="form-group">
+          <label style="color:#1b5e20; font-weight:600;">
+            Crop you want to grow
+          </label>
+          <select name="cropname" class="form-control" required style="font-weight:600;">
+            <option selected disabled>Select crop</option>
+            <option>apple</option>
+            <option>banana</option>
+            <option>coffee</option>
+            <option>cotton</option>
+            <option>grapes</option>
+            <option>groundnut</option>
+            <option>jute</option>
+            <option>maize</option>
+            <option>mango</option>
+            <option>orange</option>
+            <option>paddy</option>
+            <option>rice</option>
+            <option>sugarcane</option>
+            <option>wheat</option>
+          </select>
+        </div>
+
+        <!-- Button -->
+        <div style="text-align:center; margin-top:30px;">
+          <button type="submit"
+            style="
+                background:#1b5e20;
+                color:white;
+                font-size:18px;
+                font-weight:600;
+                padding:12px 40px;
+                border:none;
+                border-radius:30px;
+                transition:0.3s;
+            ">
+            🌾 Predict Fertilizer
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

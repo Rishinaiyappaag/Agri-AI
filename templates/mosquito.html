@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html" class="active">Pesticide</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    min-height: 90vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 70px 0;
+">
+
+  <div class="container">
+
+    <!-- Pest Heading -->
+    <h2 style="
+        text-align:center;
+        color:#1b5e20;
+        font-size:34px;
+        font-weight:700;
+        margin-bottom:10px;
+    ">
+        🦟 Identified Pest
+    </h2>
+
+    <h3 style="
+        text-align:center;
+        color:#1565c0;
+        font-size:24px;
+        font-weight:600;
+        margin-bottom:40px;
+    ">
+        Mosquito
+    </h3>
+
+    <!-- Recommended Products Header -->
+    <div style="
+        background:#1b5e20;
+        color:white;
+        padding:15px;
+        border-radius:12px;
+        text-align:center;
+        margin-bottom:35px;
+        font-size:20px;
+        font-weight:600;
+    ">
+        🧪 Recommended Pesticides
+    </div>
+
+    <!-- Product Cards -->
+    <div class="row justify-content-center">
+
+      <!-- Evident -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div style="
+            background:white;
+            border-radius:18px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.12);
+            padding:22px;
+            text-align:center;
+        ">
+          <img src="{{ url_for('static', filename='img/pesticide/mosquito/evident.jpg') }}"
+               alt="Evident"
+               style="width:100%; height:230px; object-fit:contain; border-radius:12px;">
+          <h4 style="margin-top:15px; color:#1b5e20;">Dose</h4>
+          <p style="color:#1565c0; font-size:17px;">400 – 500 gm / Ha</p>
+        </div>
+      </div>
+
+      <!-- Thiomax -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div style="
+            background:white;
+            border-radius:18px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.12);
+            padding:22px;
+            text-align:center;
+        ">
+          <img src="{{ url_for('static', filename='img/pesticide/mosquito/thiomax.jpg') }}"
+               alt="Thiomax"
+               style="width:100%; height:230px; object-fit:contain; border-radius:12px;">
+          <h4 style="margin-top:15px; color:#1b5e20;">Dose</h4>
+          <p style="color:#1565c0; font-size:17px;">100 gm / Ha</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Advisory Note -->
+    <div style="
+        margin-top:40px;
+        padding:20px;
+        background:#ffffff;
+        border-left:6px solid #2e7d32;
+        border-radius:10px;
+        color:#2e7d32;
+        font-size:16px;
+    ">
+        ⚠️ <b>Advisory:</b> Mosquito infestation increases in stagnant water conditions.
+        Drain excess water and apply pesticides during early morning or evening hours.
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

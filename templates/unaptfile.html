@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html" class="active">Pesticide</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    min-height: 90vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 90px 0;
+">
+
+  <div class="container" style="text-align:center;">
+
+    <div style="
+        max-width:520px;
+        margin:auto;
+        background:#ffffff;
+        padding:40px 30px;
+        border-radius:22px;
+        box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    ">
+
+      <!-- Icon -->
+      <div style="
+          font-size:60px;
+          margin-bottom:15px;
+          color:#d32f2f;
+      ">
+        ❌
+      </div>
+
+      <!-- Message -->
+      <h2 style="
+          color:#1b5e20;
+          font-size:26px;
+          font-weight:700;
+          margin-bottom:10px;
+      ">
+        Invalid File Format
+      </h2>
+
+      <p style="
+          color:#1565c0;
+          font-size:17px;
+          margin-bottom:25px;
+      ">
+        Please upload a valid image file to continue.
+      </p>
+
+      <p style="
+          color:#2e7d32;
+          font-size:15px;
+          margin-bottom:30px;
+      ">
+        Accepted formats: <b>JPG, JPEG, PNG</b><br>
+        Ensure the image is clear and properly captured.
+      </p>
+
+      <!-- Action Button -->
+      <a href="/PesticideRecommendation.html"
+         style="
+            display:inline-block;
+            background:#1b5e20;
+            color:white;
+            padding:12px 35px;
+            border-radius:30px;
+            font-size:16px;
+            font-weight:600;
+            text-decoration:none;
+            transition:0.3s;
+         ">
+        🔁 Try Again
+      </a>
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

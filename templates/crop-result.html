@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html" class="active">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    min-height: 90vh;
+    padding-top: 80px;
+">
+
+  <div class="container text-center">
+
+    <!-- Heading -->
+    <h1 style="
+        font-size: 42px;
+        color: #1b5e20;
+        font-weight: 700;
+        margin-bottom: 25px;
+    ">
+        🌾 Recommended Crop
+    </h1>
+
+    <!-- Result Card -->
+    <div style="
+        max-width: 900px;
+        margin: auto;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    ">
+
+        <h2 style="
+            color: #1565c0;
+            font-weight: 600;
+            margin-bottom: 20px;
+        ">
+            You should grow
+            <span style="
+                color: #2e7d32;
+                font-weight: 700;
+            ">
+                {{ prediction }}
+            </span>
+        </h2>
+
+        <!-- Crop Image -->
+        <img src="{{ url_for('static', filename=pred) }}"
+             alt="{{ prediction }}"
+             style="
+                width: 100%;
+                max-width: 780px;
+                height: auto;
+                border-radius: 18px;
+                margin: 25px 0;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+             ">
+
+        <!-- Info Text -->
+        <p style="
+            font-size: 17px;
+            line-height: 1.7;
+            color: #2e7d32;
+            margin-top: 15px;
+        ">
+            This crop is best suited for your soil nutrients, climate conditions,
+            and rainfall values based on our AI-powered analysis.
+        </p>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 30px;">
+            <a href="CropRecommendation.html"
+               style="
+                    background: #1b5e20;
+                    color: #ffffff;
+                    padding: 12px 25px;
+                    border-radius: 25px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-right: 10px;
+               ">
+                🔁 Try Again
+            </a>
+
+            <a href="FertilizerRecommendation.html"
+               style="
+                    background: #1565c0;
+                    color: #ffffff;
+                    padding: 12px 25px;
+                    border-radius: 25px;
+                    text-decoration: none;
+                    font-weight: 600;
+               ">
+                ➡ Fertilizer Advice
+            </a>
+        </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

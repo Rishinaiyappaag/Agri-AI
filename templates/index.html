@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html" class="active">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="PlantDisease.html">Plant Disease</a></li>
+{% endblock %}
+
+{% block body %}
+
+<!-- HERO SECTION -->
+<section style="
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 80px 0;
+">
+  <div class="container text-center">
+    <h1 style="
+        font-size: 48px;
+        color: #1b5e20;
+        font-weight: 700;
+    ">
+      🌱 Welcome to Agri AI
+    </h1>
+
+    <h3 style="
+        color: #1565c0;
+        margin-top: 15px;
+        font-weight: 500;
+    ">
+      Smart Farming with Artificial Intelligence
+    </h3>
+
+    <p style="
+        max-width: 900px;
+        margin: 30px auto;
+        font-size: 18px;
+        line-height: 1.7;
+        color: #2e7d32;
+    ">
+      <b>Agri AI</b> empowers Indian farmers using AI-driven insights for
+      <b>Crop Recommendation</b>, <b>Fertilizer Guidance</b>,
+      <b>Pest Control</b>, and <b>Plant Disease Detection</b>.
+      Our goal is to protect soil health, maximize yield, and secure livelihoods.
+    </p>
+
+    <img src="{{ url_for('static', filename='img/table-set.jpeg') }}"
+         style="width: 90%; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+  </div>
+</section>
+
+<!-- SERVICES SECTION -->
+<section style="background: #ffffff; padding: 80px 0;">
+  <div class="container">
+
+    <h2 style="
+        text-align: center;
+        color: #1b5e20;
+        font-size: 36px;
+        font-weight: 700;
+    ">
+      🌾 Our Services
+    </h2>
+
+    <p style="
+        text-align: center;
+        color: #1565c0;
+        font-size: 18px;
+        margin-bottom: 50px;
+    ">
+      AI-powered tools for smarter agricultural decisions
+    </p>
+
+    <div class="row text-center">
+
+      <!-- CROP -->
+      <div class="col-md-4">
+        <div style="
+            background: #e8f5e9;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            height: 100%;
+        ">
+          <img src="{{ url_for('static', filename='img/popular-2.jpg') }}"
+               style="width:100%; border-radius:15px; margin-bottom:15px;">
+          <h3 style="color:#1b5e20;">🌱 Crop Recommendation</h3>
+          <p style="color:#2e7d32;">
+            Identify the best crop for your soil and climate using machine learning.
+          </p>
+          <a href="CropRecommendation.html"
+             style="color:#1565c0; font-weight:600;">
+            Proceed →
+          </a>
+        </div>
+      </div>
+
+      <!-- FERTILIZER -->
+      <div class="col-md-4">
+        <div style="
+            background: #e3f2fd;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            height: 100%;
+        ">
+          <img src="{{ url_for('static', filename='img/popular-3.jpg') }}"
+               style="width:100%; border-radius:15px; margin-bottom:15px;">
+          <h3 style="color:#0d47a1;">🧪 Fertilizer Recommendation</h3>
+          <p style="color:#1565c0;">
+            Balance soil nutrients precisely to improve crop yield sustainably.
+          </p>
+          <a href="FertilizerRecommendation.html"
+             style="color:#1b5e20; font-weight:600;">
+            Proceed →
+          </a>
+        </div>
+      </div>
+
+      <!-- PESTICIDE -->
+      <div class="col-md-4">
+        <div style="
+            background: #e8f5e9;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            height: 100%;
+        ">
+          <img src="{{ url_for('static', filename='img/popular-1.jpg') }}"
+               style="width:100%; border-radius:15px; margin-bottom:15px;">
+          <h3 style="color:#1b5e20;">🐛 Pesticide Recommendation</h3>
+          <p style="color:#2e7d32;">
+            Detect pests early and get safe, effective pesticide suggestions.
+          </p>
+          <a href="PesticideRecommendation.html"
+             style="color:#1565c0; font-weight:600;">
+            Proceed →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:#e3f2fd; padding:60px 0;">
+  <div class="container">
+    <div class="row">
+
+      <div class="col-md-4">
+        <h4 style="color:#1b5e20;">👨‍🌾 Developed By</h4>
+        <p style="color:#2e7d32;">Rishin Aiyappa A G</p>
+      </div>
+
+      <div class="col-md-4">
+        <h4 style="color:#1b5e20;">💚 For Indian Farmers</h4>
+        <p style="color:#2e7d32; font-size:14px;">
+          Empowering those who feed the nation through technology, trust, and tradition.
+        </p>
+      </div>
+
+      <div class="col-md-4">
+        <h4 style="color:#1b5e20;">🔗 Connect</h4>
+        <a href="https://www.linkedin.com/in/rishinaiyappaag"
+           style="color:#1565c0; font-weight:600;">
+          LinkedIn Profile
+        </a>
+      </div>
+
+    </div>
+
+    <hr>
+
+    <p style="text-align:center; color:#1565c0;">
+      © 2026 Rishin Aiyappa A G | Agri AI
+    </p>
+  </div>
+</footer>
+
+{% endblock %}

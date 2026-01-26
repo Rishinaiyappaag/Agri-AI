@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html" class="active">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    min-height: 90vh;
+    padding: 80px 0;
+">
+
+  <div class="container">
+
+    <!-- Page Title -->
+    <h1 style="
+        text-align: center;
+        color: #1b5e20;
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 40px;
+    ">
+        🌱 Fertilizer Recommendation
+    </h1>
+
+    <!-- Result Card -->
+    <div style="
+        max-width: 900px;
+        margin: auto;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    ">
+
+        <!-- Nitrogen -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="color:#1565c0; font-weight:600;">
+                Nitrogen (N)
+            </h3>
+            <p style="font-size:18px; color:#2e7d32;">
+                Difference between required Nitrogen and your soil value:
+                <b>{{ diff_n }}</b>
+            </p>
+            <div style="
+                background:#f1f8e9;
+                padding:15px;
+                border-left:6px solid #2e7d32;
+                border-radius:8px;
+                color:#1b5e20;
+                font-size:16px;
+            ">
+                {{ recommendation1 }}
+            </div>
+        </div>
+
+        <!-- Phosphorus -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="color:#1565c0; font-weight:600;">
+                Phosphorus (P)
+            </h3>
+            <p style="font-size:18px; color:#2e7d32;">
+                Difference between required Phosphorus and your soil value:
+                <b>{{ diff_p }}</b>
+            </p>
+            <div style="
+                background:#e3f2fd;
+                padding:15px;
+                border-left:6px solid #1565c0;
+                border-radius:8px;
+                color:#0d47a1;
+                font-size:16px;
+            ">
+                {{ recommendation2 }}
+            </div>
+        </div>
+
+        <!-- Potassium -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="color:#1565c0; font-weight:600;">
+                Potassium (K)
+            </h3>
+            <p style="font-size:18px; color:#2e7d32;">
+                Difference between required Potassium and your soil value:
+                <b>{{ diff_k }}</b>
+            </p>
+            <div style="
+                background:#f1f8e9;
+                padding:15px;
+                border-left:6px solid #2e7d32;
+                border-radius:8px;
+                color:#1b5e20;
+                font-size:16px;
+            ">
+                {{ recommendation3 }}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="text-align:center; margin-top:30px;">
+            <a href="FertilizerRecommendation.html"
+               style="
+                    background:#1b5e20;
+                    color:white;
+                    padding:12px 30px;
+                    border-radius:25px;
+                    text-decoration:none;
+                    font-weight:600;
+                    margin-right:10px;
+               ">
+                🔁 Check Again
+            </a>
+
+            <a href="PesticideRecommendation.html"
+               style="
+                    background:#1565c0;
+                    color:white;
+                    padding:12px 30px;
+                    border-radius:25px;
+                    text-decoration:none;
+                    font-weight:600;
+               ">
+                ➡ Pest Control
+            </a>
+        </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

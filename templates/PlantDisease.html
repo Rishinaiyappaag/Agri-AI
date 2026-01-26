@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="index.html">Home</a></li>
+<li><a href="CropRecommendation.html">Crop</a></li>
+<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="PlantDisease.html" class="active">Plant Disease</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+    min-height: 90vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    padding: 80px 0;
+">
+
+  <div class="container">
+
+    <!-- Heading -->
+    <h2 style="
+        text-align:center;
+        color:#1b5e20;
+        font-size:36px;
+        font-weight:700;
+        margin-bottom:10px;
+    ">
+        🌿 Plant Leaf Disease Detection
+    </h2>
+
+    <p style="
+        text-align:center;
+        color:#1565c0;
+        font-size:18px;
+        margin-bottom:40px;
+    ">
+        Upload a clear image of a plant leaf to identify the disease accurately
+    </p>
+
+    <!-- Upload Card -->
+    <div style="
+        max-width:420px;
+        margin:auto;
+        background:#ffffff;
+        padding:35px;
+        border-radius:22px;
+        box-shadow:0 12px 30px rgba(0,0,0,0.15);
+        text-align:center;
+    ">
+
+      <form
+        action="/plant-disease-predict"
+        method="POST"
+        enctype="multipart/form-data"
+      >
+
+        <!-- File Input Box -->
+        <div style="
+            border:2px dashed #81c784;
+            padding:25px;
+            border-radius:15px;
+            margin-bottom:25px;
+            background:#f9fff9;
+        ">
+          <input
+            type="file"
+            name="image"
+            accept="image/png, image/jpeg"
+            required
+            style="
+              font-size:15px;
+              color:#1b5e20;
+            "
+          >
+          <p style="
+              margin-top:12px;
+              font-size:14px;
+              color:#2e7d32;
+          ">
+            Accepted formats: JPG, JPEG, PNG
+          </p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          style="
+            background:#1b5e20;
+            color:white;
+            font-size:18px;
+            font-weight:600;
+            padding:12px 45px;
+            border:none;
+            border-radius:30px;
+            cursor:pointer;
+            transition:0.3s;
+          "
+          onmouseover="this.style.background='#2e7d32'"
+          onmouseout="this.style.background='#1b5e20'"
+        >
+          🔍 Predict Disease
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

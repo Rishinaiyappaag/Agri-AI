@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agri AI</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Recursive:wght@500&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/templatemo-style.css') }}" rel="stylesheet">
+
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+      font-family: 'Open Sans', sans-serif;
+      color: #263238;
+    }
+
+    /* Header */
+    .tm-top-header {
+      background: #ffffff;
+      border-bottom: 3px solid #2e7d32;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .tm-site-name {
+      color: #1b5e20;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    /* Navigation */
+    .tm-nav ul li a {
+      color: #1565c0;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 20px;
+      transition: 0.3s;
+    }
+
+    .tm-nav ul li a:hover,
+    .tm-nav ul li a.active {
+      background: #1b5e20;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    /* Mobile Menu */
+    .mobile-menu-icon i {
+      color: #1b5e20;
+    }
+
+    /* Footer optional if exists later */
+    footer {
+      background: #ffffff;
+      border-top: 3px solid #1565c0;
+      padding: 15px 0;
+      text-align: center;
+      color: #1565c0;
+    }
+
+    /* Smooth UI */
+    button, a {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <div class="tm-top-header">
+    <div class="container">
+      <div class="row">
+        <div class="tm-top-header-inner d-flex justify-content-between align-items-center">
+
+          <!-- Logo -->
+          <div class="tm-logo-container">
+            <h1 class="tm-site-name tm-handwriting-font">🌱 Agri AI</h1>
+          </div>
+
+          <!-- Mobile Menu -->
+          <div class="mobile-menu-icon">
+            <i class="fa fa-bars"></i>
+          </div>
+
+          <!-- Navigation -->
+          <nav class="tm-nav">
+            <ul>
+              {% block nav %}{% endblock %}
+            </ul>
+          </nav>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  {% block body %}{% endblock %}
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='js/jquery-1.11.2.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/templatemo-script.js') }}"></script>
+
+</body>
+</html>
