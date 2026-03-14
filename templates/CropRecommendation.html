@@ -1,11 +1,12 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html">Home</a></li>
-<li><a href="CropRecommendation.html" class="active">Crop</a></li>
-<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html">Pesticide</a></li>
-<li><a href="PlantDisease.html">Plant Disease</a></li>
+<li><a href="/" class="active">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
 
 {% block body %}
@@ -26,7 +27,7 @@
         font-weight:700;
         margin-bottom:10px;
     ">
-        🌾 Crop Recommendation
+      🌾 Crop Recommendation
     </h2>
 
     <p style="
@@ -35,7 +36,7 @@
         font-size:18px;
         margin-bottom:40px;
     ">
-        Find the most suitable crop for your farm based on soil & climate
+      Find the most suitable crop for your farm based on soil & climate
     </p>
 
     <!-- Form Card -->
@@ -53,81 +54,55 @@
         <!-- Nitrogen -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Nitrogen (N)</label>
-          <input type="number" name="nitrogen"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 50"
+          <input type="number" name="nitrogen" class="form-control" min="0" max="100" placeholder="Example: 50"
             required>
         </div>
 
         <!-- Phosphorous -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Phosphorous (P)</label>
-          <input type="number" name="phosphorous"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 40"
+          <input type="number" name="phosphorous" class="form-control" min="0" max="100" placeholder="Example: 40"
             required>
         </div>
 
         <!-- Potassium -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Potassium (K)</label>
-          <input type="number" name="potassium"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 60"
+          <input type="number" name="potassium" class="form-control" min="0" max="100" placeholder="Example: 60"
             required>
         </div>
 
         <!-- pH -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Soil pH</label>
-          <input type="number" name="ph"
-            class="form-control"
-            min="0" max="14"
-            step="0.01"
-            placeholder="Example: 6.5"
+          <input type="number" name="ph" class="form-control" min="0" max="14" step="0.01" placeholder="Example: 6.5"
             required>
         </div>
 
         <!-- Rainfall -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Rainfall (mm)</label>
-          <input type="number" name="rainfall"
-            class="form-control"
-            min="0"
-            step="0.01"
-            placeholder="Example: 250"
+          <input type="number" name="rainfall" class="form-control" min="0" step="0.01" placeholder="Example: 250"
             required>
         </div>
 
         <!-- Temperature -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Temperature (°C)</label>
-          <input type="number" name="temperature"
-            class="form-control"
-            min="0" max="100"
-            step="0.01"
-            placeholder="Example: 25"
-            required>
+          <input type="number" name="temperature" class="form-control" min="0" max="100" step="0.01"
+            placeholder="Example: 25" required>
         </div>
 
         <!-- Humidity -->
         <div class="form-group">
           <label style="color:#1b5e20; font-weight:600;">Humidity (%)</label>
-          <input type="number" name="humidity"
-            class="form-control"
-            min="0" max="100"
-            step="0.01"
-            placeholder="Example: 70"
-            required>
+          <input type="number" name="humidity" class="form-control" min="0" max="100" step="0.01"
+            placeholder="Example: 70" required>
         </div>
 
         <!-- Submit Button -->
         <div style="text-align:center; margin-top:30px;">
-          <button type="submit"
-            style="
+          <button type="submit" style="
                 background:#1b5e20;
                 color:white;
                 font-size:18px;

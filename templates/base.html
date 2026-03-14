@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Agri AI - Precision Agriculture System</title>
+
+    <!-- Optional: basic styling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav {
+            background-color: #2e7d32;
+            padding: 12px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        footer {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav>
+        <a href="/">Home</a>
+
+        <a href="/CropRecommendation.html">
+            Crop Recommendation
+        </a>
+
+        <a href="/FertilizerRecommendation.html">
+            Fertilizer Recommendation
+        </a>
+
+        <a href="/PesticideRecommendation.html">
+            Pesticide Recommendation
+        </a>
+
+        <a href="/PlantDisease.html">
+            Plant Disease Detection
+        </a>
+
+        <a href="/yield">
+            Yield Prediction (Federated ML)
+        </a>
+    </nav>
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+        AI-Driven Precision Agriculture System using Ensemble Learning and Federated Deep Learning
+    </footer>
+
+</body>
+
+</html>

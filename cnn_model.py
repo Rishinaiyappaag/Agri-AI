@@ -1,5 +1,5 @@
 # cnn_model.py
-# Plant Disease / Pest CNN (FIXED FOR TF 2.x)
+#  Pestiside recomendation CNN (FIXED FOR TF 2.x)
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input

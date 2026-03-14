@@ -1,0 +1,495 @@
+{% extends "layout.html" %}
+
+{% block nav %}
+<li><a href="/">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield" class="active">Yield Prediction</a></li>
+{% endblock %}
+
+{% block body %}
+
+<section style="
+min-height:90vh;
+background:linear-gradient(135deg,#e8f5e9,#e3f2fd);
+padding:80px 0;
+">
+
+    <div class="container">
+
+        <h2 style="
+text-align:center;
+color:#1b5e20;
+font-size:36px;
+font-weight:700;
+margin-bottom:10px;
+">
+            🌾 Federated Learning Based Yield Prediction
+        </h2>
+
+        <p style="
+text-align:center;
+color:#1565c0;
+font-size:18px;
+margin-bottom:40px;
+">
+            Enter farm parameters to predict expected yield
+        </p>
+
+        <div style="
+max-width:500px;
+margin:auto;
+background:#ffffff;
+padding:35px;
+border-radius:22px;
+box-shadow:0 12px 30px rgba(0,0,0,0.15);
+">
+
+            <!-- ⭐ INPUT VALIDATION WARNING ⭐ -->
+            <div id="validationWarning" style="
+background:#fff3cd;
+border:2px solid #ffc107;
+padding:15px;
+margin-bottom:20px;
+border-radius:10px;
+color:#856404;
+display:none;
+">
+                <strong>⚠️ Warning:</strong> <span id="warningMessage"></span>
+            </div>
+
+            <form action="/predict_yield" method="POST" onsubmit="return validateInputsBeforeSubmit()">
+
+                <!-- Crop Selection -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">🌾 Crop:</label>
+                <select name="Crop" id="cropSelect" required style="
+width:100%;
+padding:12px;
+margin-bottom:18px;
+border-radius:10px;
+border:2px solid #ccc;
+font-size:14px;
+">
+                    <option value="">Select Crop</option>
+                    {% for crop in crops %}
+                    <option value="{{ crop }}" {% if form_data and form_data.get('Crop')==crop %}selected{% endif %}>
+                        {{ crop }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <!-- Crop Year -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">📅 Crop Year:</label>
+                <input type="number" name="Crop_Year" id="cropYear" required
+                    value="{{ form_data.get('Crop_Year','2025') if form_data else '2025' }}" min="1990" max="2030"
+                    style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;">
+
+                <!-- Area in Hectares with Real-time Acre Conversion -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">📍 Area (Hectares):</label>
+                <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <div style="flex:1;">
+                        <input type="number" step="0.01" name="Area" id="areaHectare" required
+                            value="{{ form_data.get('Area','') if form_data else '' }}" min="0.1"
+                            style="width:100%;padding:12px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+                            placeholder="e.g., 1.5" oninput="convertHectareToAcre()">
+                    </div>
+                    <div style="
+flex:1;
+padding:12px;
+background:#e8f5e9;
+border-radius:10px;
+border:2px solid #2e7d32;
+text-align:center;
+display:flex;
+align-items:center;
+justify-content:center;
+">
+                        <span style="
+color:#1b5e20;
+font-weight:600;
+font-size:14px;
+">
+                            = <span id="areaAcre">0</span> acres
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Production (CRITICAL!) -->
+                <label style="font-weight:600; display:block; margin-bottom:8px; color:#d32f2f;">⭐ Production (Tons) -
+                    CRITICAL:</label>
+                <input type="number" step="0.01" name="Production" id="production" required
+                    value="{{ form_data.get('Production','') if form_data else '' }}" min="0.1"
+                    style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #d32f2f;box-sizing:border-box;"
+                    placeholder="e.g., 35" oninput="validateInputs()">
+                <p style="color:#d32f2f; font-size:12px; margin-top:-15px; margin-bottom:15px;">
+                    ⚠️ This is the most important factor for accurate predictions!
+                </p>
+
+                <!-- Annual Rainfall -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">💧 Annual Rainfall (mm):</label>
+                <input type="number" step="0.01" name="Annual_Rainfall" id="rainfall" required
+                    value="{{ form_data.get('Annual_Rainfall','') if form_data else '' }}" min="0"
+                    style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+                    placeholder="e.g., 600" oninput="validateInputs()">
+                <p style="color:#666; font-size:11px; margin-top:-15px; margin-bottom:15px;">
+                    💡 Realistic range: 300-900 mm
+                </p>
+
+                <!-- Fertilizer -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">🧪 Fertilizer (Units):</label>
+                <input type="number" step="0.01" name="Fertilizer" id="fertilizer" required
+                    value="{{ form_data.get('Fertilizer','') if form_data else '' }}" min="0"
+                    style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+                    placeholder="e.g., 100" oninput="validateInputs()">
+                <p style="color:#666; font-size:11px; margin-top:-15px; margin-bottom:15px;">
+                    💡 Realistic range: 50-300 units
+                </p>
+
+                <!-- Pesticide -->
+                <label style="font-weight:600; display:block; margin-bottom:8px;">🐛 Pesticide (Units):</label>
+                <input type="number" step="0.01" name="Pesticide" id="pesticide" required
+                    value="{{ form_data.get('Pesticide','') if form_data else '' }}" min="0"
+                    style="width:100%;padding:12px;margin-bottom:25px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+                    placeholder="e.g., 50" oninput="validateInputs()">
+                <p style="color:#666; font-size:11px; margin-top:-15px; margin-bottom:15px;">
+                    💡 Realistic range: 20-100 units
+                </p>
+
+                <!-- Submit Button -->
+                <div style="text-align:center;">
+                    <button type="submit" id="submitBtn" style="
+background:linear-gradient(135deg,#1b5e20,#2e7d32);
+color:white;
+font-size:18px;
+font-weight:600;
+padding:14px 50px;
+border:none;
+border-radius:30px;
+cursor:pointer;
+transition:all 0.3s ease;
+box-shadow:0 4px 15px rgba(27,94,32,0.3);
+">
+                        📊 Predict Yield
+                    </button>
+                </div>
+
+            </form>
+
+
+            <!-- Error Message -->
+            {% if error %}
+            <div style="
+margin-top:20px;
+padding:15px;
+background:#ffebee;
+border-left:4px solid #d32f2f;
+color:#c62828;
+border-radius:8px;
+text-align:center;
+">
+                <strong>❌ Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+
+
+            <!-- Prediction Result -->
+            {% if prediction is not none %}
+
+            <div style="
+margin-top:30px;
+padding:25px;
+background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
+border-radius:15px;
+text-align:center;
+border:2px solid #2e7d32;
+">
+
+                <h3 style="color:#1b5e20;font-size:28px;margin-bottom:5px;">
+                    🎯 Predicted Yield
+                </h3>
+
+                <p style="
+font-size:48px;
+color:#1b5e20;
+font-weight:700;
+margin:10px 0;
+">
+                    {{ prediction }}
+                </p>
+
+                <p style="font-size:16px;color:#2e7d32;margin:5px 0;">
+                    tons/hectare
+                </p>
+
+                <p style="font-size:14px;color:#1565c0;margin-top:10px;">
+                    ≈ {{ (prediction / 2.471)|round(2) }} tons/acre
+                </p>
+
+                <!-- Summary -->
+                <div style="
+margin-top:20px;
+padding:15px;
+background:#ffffff;
+border-radius:10px;
+text-align:left;
+">
+                    <h4 style="color:#1565c0; margin-top:0;">Input Summary:</h4>
+                    <p style="margin:8px 0; font-size:13px;">
+                        <strong>🌾 Crop:</strong> {{ form_data.get('Crop') }}<br>
+                        <strong>📅 Year:</strong> {{ form_data.get('Crop_Year') }}<br>
+                        <strong>📍 Area:</strong> {{ form_data.get('Area') }} hectares (≈ {{
+                        (form_data.get('Area')|float * 2.471)|round(2) if form_data else 0 }} acres)<br>
+                        <strong>⭐ Production:</strong> {{ form_data.get('Production') }} tons<br>
+                        <strong>💧 Rainfall:</strong> {{ form_data.get('Annual_Rainfall') }} mm<br>
+                        <strong>🧪 Fertilizer:</strong> {{ form_data.get('Fertilizer') }} units<br>
+                        <strong>🐛 Pesticide:</strong> {{ form_data.get('Pesticide') }} units
+                    </p>
+                </div>
+
+                <!-- Buttons -->
+                <div style="text-align:center;margin-top:20px;">
+                    <button onclick="window.location.href='/yield'" style="
+background:#1565c0;
+color:white;
+border:none;
+padding:12px 30px;
+border-radius:20px;
+cursor:pointer;
+font-weight:600;
+margin:5px;
+transition:all 0.3s ease;
+">
+                        🔄 Predict Another
+                    </button>
+                    <button onclick="window.print()" style="
+background:#558b2f;
+color:white;
+border:none;
+padding:12px 30px;
+border-radius:20px;
+cursor:pointer;
+font-weight:600;
+margin:5px;
+transition:all 0.3s ease;
+">
+                        🖨️ Print Result
+                    </button>
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Information Section -->
+        <div style="
+max-width:800px;
+margin:40px auto 0;
+padding:30px;
+background:#ffffff;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+">
+
+            <h3 style="color:#1b5e20; font-size:22px; margin-bottom:15px;">
+                📚 How This Model Works
+            </h3>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:14px;line-height:1.8;">
+
+                <div>
+                    <h4 style="color:#1565c0;margin-bottom:8px;">Key Factors (Positive Impact):</h4>
+                    <ul style="margin:5px;padding-left:20px;">
+                        <li>✅ Higher Production → Higher Yield</li>
+                        <li>✅ Higher Rainfall → Higher Yield</li>
+                        <li>✅ More Fertilizer → Higher Yield</li>
+                        <li>✅ More Pesticide → Higher Yield</li>
+                        <li>✅ Larger Area → Proportional Yield</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 style="color:#1565c0;margin-bottom:8px;">Technology Used:</h4>
+                    <ul style="margin:5px;padding-left:20px;">
+                        <li>🔗 Federated Learning (FL)</li>
+                        <li>🤖 XGBoost Regression</li>
+                        <li>📊 18 Engineered Features</li>
+                        <li>🎯 98.09% Test Accuracy</li>
+                        <li>🔐 Privacy-Preserving ML</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div
+                style="margin-top:15px;padding:15px;background:#e3f2fd;border-radius:10px;border-left:4px solid #1565c0;">
+                <strong>📌 Note:</strong> Production is the most critical input as Yield = Production / Area.
+                Higher rainfall, fertilizer, and pesticide usage generally increase production, which increases yield.
+                The model was trained on 18,000+ real farm data points using Federated Learning to ensure privacy.
+            </div>
+
+            <div
+                style="margin-top:15px;padding:15px;background:#f3e5f5;border-radius:10px;border-left:4px solid #9c27b0;">
+                <strong>🔍 Input Guidelines:</strong><br>
+                • <strong>Rainfall:</strong> 300-900 mm (realistic range)<br>
+                • <strong>Fertilizer:</strong> 50-300 units (realistic range)<br>
+                • <strong>Pesticide:</strong> 20-100 units (realistic range)<br>
+                • <strong>Production:</strong> Should match rainfall, fertilizer, and pesticide levels
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- JavaScript for Real-time Hectare to Acre Conversion & Input Validation -->
+<script>
+    // ╔════════════════════════════════════════════════════════════════════╗
+    // ║            HECTARE TO ACRE CONVERSION (REAL-TIME)                 ║
+    // ╚════════════════════════════════════════════════════════════════════╝
+
+    function convertHectareToAcre() {
+        const hectareInput = document.getElementById('areaHectare');
+        const acreDisplay = document.getElementById('areaAcre');
+
+        const hectares = parseFloat(hectareInput.value);
+
+        if (isNaN(hectares) || hectares === '') {
+            acreDisplay.textContent = '0';
+        } else {
+            // 1 hectare = 2.471 acres
+            const acres = (hectares * 2.471).toFixed(2);
+            acreDisplay.textContent = acres;
+        }
+    }
+
+    // ╔════════════════════════════════════════════════════════════════════╗
+    // ║              INPUT VALIDATION (REAL-TIME)                         ║
+    // ╚════════════════════════════════════════════════════════════════════╝
+
+    function validateInputs() {
+        const production = parseFloat(document.getElementById('production').value) || 0;
+        const rainfall = parseFloat(document.getElementById('rainfall').value) || 0;
+        const fertilizer = parseFloat(document.getElementById('fertilizer').value) || 0;
+        const pesticide = parseFloat(document.getElementById('pesticide').value) || 0;
+
+        const warningDiv = document.getElementById('validationWarning');
+        const warningMessage = document.getElementById('warningMessage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        let warnings = [];
+
+        // ─── Check 1: All inputs are zero ───
+        if (rainfall === 0 && fertilizer === 0 && pesticide === 0) {
+            warnings.push("All inputs (Rainfall, Fertilizer, Pesticide) cannot be zero! Crops need resources to grow.");
+            warningDiv.style.display = 'block';
+            warningDiv.style.borderColor = '#d32f2f';
+            warningDiv.style.backgroundColor = '#ffebee';
+            warningMessage.textContent = warnings[0];
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+            return;
+        }
+
+        // ─── Check 2: High production with zero rainfall and fertilizer ───
+        if (production > 50 && rainfall === 0 && fertilizer === 0) {
+            warnings.push("High production with zero rainfall and fertilizer is unrealistic! Enter realistic values.");
+            warningDiv.style.display = 'block';
+            warningDiv.style.borderColor = '#d32f2f';
+            warningDiv.style.backgroundColor = '#ffebee';
+            warningMessage.textContent = warnings[0];
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+            return;
+        }
+
+        // ─── Check 3: Very low rainfall with high production ───
+        if (production > 40 && rainfall < 100) {
+            warnings.push("High production with very low rainfall (<100mm) is unrealistic!");
+            warningDiv.style.display = 'block';
+            warningDiv.style.borderColor = '#ffc107';
+            warningDiv.style.backgroundColor = '#fff3cd';
+            warningMessage.textContent = warnings[0];
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            return;
+        }
+
+        // ─── Check 4: High production but no fertilizer ───
+        if (production > 40 && fertilizer === 0) {
+            warnings.push("High production with zero fertilizer is unrealistic! Add fertilizer value.");
+            warningDiv.style.display = 'block';
+            warningDiv.style.borderColor = '#ffc107';
+            warningDiv.style.backgroundColor = '#fff3cd';
+            warningMessage.textContent = warnings[0];
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            return;
+        }
+
+        // ─── All checks passed ───
+        warningDiv.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+    }
+
+    // ╔════════════════════════════════════════════════════════════════════╗
+    // ║          VALIDATE BEFORE FORM SUBMISSION                          ║
+    // ╚════════════════════════════════════════════════════════════════════╝
+
+    function validateInputsBeforeSubmit() {
+        const production = parseFloat(document.getElementById('production').value) || 0;
+        const rainfall = parseFloat(document.getElementById('rainfall').value) || 0;
+        const fertilizer = parseFloat(document.getElementById('fertilizer').value) || 0;
+        const pesticide = parseFloat(document.getElementById('pesticide').value) || 0;
+        const crop = document.getElementById('cropSelect').value;
+
+        // Check crop selected
+        if (crop === '') {
+            alert('❌ Please select a crop!');
+            return false;
+        }
+
+        // ─── HARD BLOCK: All inputs zero ───
+        if (rainfall === 0 && fertilizer === 0 && pesticide === 0) {
+            alert('❌ INVALID INPUT!\n\nRainfall, Fertilizer, and Pesticide cannot ALL be zero.\n\nCrops need resources to grow!\n\nPlease enter realistic values.');
+            return false;
+        }
+
+        // ─── HARD BLOCK: Extreme unrealistic combo ───
+        if (production > 50 && rainfall === 0 && fertilizer === 0) {
+            alert('❌ INVALID INPUT!\n\nHigh production (' + production + ' tons) with ZERO rainfall and ZERO fertilizer is impossible!\n\nPlease enter realistic values.');
+            return false;
+        }
+
+        // ─── WARNING: Low rainfall with high production ───
+        if (production > 40 && rainfall < 100) {
+            const confirm_submit = window.confirm('⚠️ WARNING!\n\nHigh production (' + production + ' tons) with very low rainfall (' + rainfall + 'mm) is unrealistic.\n\nDo you want to proceed anyway?');
+            if (!confirm_submit) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ╔════════════════════════════════════════════════════════════════════╗
+    // ║              RUN ON PAGE LOAD                                     ║
+    // ╚════════════════════════════════════════════════════════════════════╝
+
+    window.addEventListener('DOMContentLoaded', function () {
+        convertHectareToAcre();
+        validateInputs();
+    });
+</script>
+
+{% endblock %}

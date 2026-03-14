@@ -1,12 +1,13 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html">Home</a></li>
-<li><a href="CropRecommendation.html">Crop</a></li>
-<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html" class="active">Pesticide</a></li>
+<li><a href="/" class="active">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
-
 {% block body %}
 
 <section style="
@@ -15,31 +16,31 @@
     padding: 70px 0;
 ">
 
-  <div class="container">
+    <div class="container">
 
-    <!-- Pest Heading -->
-    <h2 style="
+        <!-- Pest Heading -->
+        <h2 style="
         text-align:center;
         color:#1b5e20;
         font-size:34px;
         font-weight:700;
         margin-bottom:10px;
     ">
-        🐛 Identified Pest
-    </h2>
+            🐛 Identified Pest
+        </h2>
 
-    <h3 style="
+        <h3 style="
         text-align:center;
         color:#1565c0;
         font-size:24px;
         font-weight:600;
         margin-bottom:40px;
     ">
-        Aphids
-    </h3>
+            Aphids
+        </h3>
 
-    <!-- Recommended Products Title -->
-    <div style="
+        <!-- Recommended Products Title -->
+        <div style="
         background:#1b5e20;
         color:white;
         padding:15px;
@@ -49,24 +50,24 @@
         font-size:20px;
         font-weight:600;
     ">
-        🧪 Recommended Pesticides
-    </div>
+            🧪 Recommended Pesticides
+        </div>
 
-    <!-- Cards -->
-    <div class="row justify-content-center">
+        <!-- Cards -->
+        <div class="row justify-content-center">
 
-      {% set products = [
-        ('banzo.jpg', '330 ml / acre'),
-        ('derby.jpg', '600 gm / Ha'),
-        ('fulstop-d.jpg', '1000 ml / Ha'),
-        ('intice.jpg', '30–35 gm / Ha'),
-        ('ultimo-200-sl.jpg', '100–150 ml / Ha'),
-        ('ultimo-super.jpg', '60–75 ml / Ha')
-      ] %}
+            {% set products = [
+            ('banzo.jpg', '330 ml / acre'),
+            ('derby.jpg', '600 gm / Ha'),
+            ('fulstop-d.jpg', '1000 ml / Ha'),
+            ('intice.jpg', '30–35 gm / Ha'),
+            ('ultimo-200-sl.jpg', '100–150 ml / Ha'),
+            ('ultimo-super.jpg', '60–75 ml / Ha')
+            ] %}
 
-      {% for img, dose in products %}
-      <div class="col-md-4 col-sm-6 mb-4">
-        <div style="
+            {% for img, dose in products %}
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div style="
             background:white;
             border-radius:18px;
             box-shadow:0 10px 25px rgba(0,0,0,0.12);
@@ -74,36 +75,34 @@
             text-align:center;
             transition:0.3s;
         ">
-          <img src="static/img/pesticide/aphids/{{ img }}"
-               alt="{{ img }}"
-               style="
+                    <img src="static/img/pesticide/aphids/{{ img }}" alt="{{ img }}" style="
                    width:100%;
                    height:180px;
                    object-fit:contain;
                    border-radius:12px;
                ">
-          <h4 style="
+                    <h4 style="
               margin-top:15px;
               color:#1b5e20;
               font-weight:600;
           ">
-              Dose
-          </h4>
-          <p style="
+                        Dose
+                    </h4>
+                    <p style="
               color:#1565c0;
               font-size:18px;
               font-weight:500;
           ">
-              {{ dose }}
-          </p>
+                        {{ dose }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+
         </div>
-      </div>
-      {% endfor %}
 
-    </div>
-
-    <!-- Safety Note -->
-    <div style="
+        <!-- Safety Note -->
+        <div style="
         margin-top:40px;
         padding:20px;
         background:#ffffff;
@@ -112,11 +111,11 @@
         color:#2e7d32;
         font-size:16px;
     ">
-        ⚠️ <b>Safety Tip:</b> Always follow the manufacturer’s instructions,
-        wear protective gear, and avoid overuse of pesticides.
-    </div>
+            ⚠️ <b>Safety Tip:</b> Always follow the manufacturer’s instructions,
+            wear protective gear, and avoid overuse of pesticides.
+        </div>
 
-  </div>
+    </div>
 </section>
 
 {% endblock %}

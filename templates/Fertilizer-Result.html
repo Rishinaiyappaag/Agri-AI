@@ -1,138 +1,180 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html">Home</a></li>
-<li><a href="CropRecommendation.html">Crop</a></li>
-<li><a href="FertilizerRecommendation.html" class="active">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
 
 {% block body %}
 
 <section style="
-    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
     min-height: 90vh;
+    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
     padding: 80px 0;
 ">
 
-  <div class="container">
+    <div class="container">
 
-    <!-- Page Title -->
-    <h1 style="
-        text-align: center;
-        color: #1b5e20;
-        font-size: 42px;
-        font-weight: 700;
-        margin-bottom: 40px;
+        <h1 style="
+        text-align:center;
+        color:#1b5e20;
+        font-size:42px;
+        font-weight:700;
+        margin-bottom:40px;
     ">
-        🌱 Fertilizer Recommendation
-    </h1>
+            🎯 Fertilizer Recommendation
+        </h1>
 
-    <!-- Result Card -->
-    <div style="
-        max-width: 900px;
-        margin: auto;
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 35px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        <div style="
+        max-width:950px;
+        margin:auto;
+        background:#ffffff;
+        border-radius:20px;
+        padding:40px;
+        box-shadow:0 12px 30px rgba(0,0,0,0.15);
     ">
 
-        <!-- Nitrogen -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="color:#1565c0; font-weight:600;">
-                Nitrogen (N)
-            </h3>
-            <p style="font-size:18px; color:#2e7d32;">
-                Difference between required Nitrogen and your soil value:
-                <b>{{ diff_n }}</b>
-            </p>
-            <div style="
-                background:#f1f8e9;
-                padding:15px;
-                border-left:6px solid #2e7d32;
-                border-radius:8px;
-                color:#1b5e20;
-                font-size:16px;
-            ">
-                {{ recommendation1 }}
-            </div>
-        </div>
+            <h2 style="color:#1565c0; text-align:center; margin-bottom:20px;">
+                Based on Your Farm Conditions
+            </h2>
 
-        <!-- Phosphorus -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="color:#1565c0; font-weight:600;">
-                Phosphorus (P)
-            </h3>
-            <p style="font-size:18px; color:#2e7d32;">
-                Difference between required Phosphorus and your soil value:
-                <b>{{ diff_p }}</b>
-            </p>
-            <div style="
-                background:#e3f2fd;
-                padding:15px;
-                border-left:6px solid #1565c0;
-                border-radius:8px;
-                color:#0d47a1;
-                font-size:16px;
-            ">
-                {{ recommendation2 }}
+            <!-- Badge -->
+            {% if method %}
+            <div style="text-align:center; margin-bottom:30px;">
+                <span style="
+                    display:inline-block;
+                    background:{% if 'ML' in method %}#2e7d32{% else %}#1565c0{% endif %};
+                    color:white;
+                    padding:10px 20px;
+                    border-radius:25px;
+                    font-weight:600;
+                    font-size:14px;
+                ">
+                    {% if 'ML' in method %}📊 ML Model Recommendation{% else %}🤖 Ollama AI Recommendation{% endif %}
+                </span>
             </div>
-        </div>
+            {% endif %}
 
-        <!-- Potassium -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="color:#1565c0; font-weight:600;">
-                Potassium (K)
-            </h3>
-            <p style="font-size:18px; color:#2e7d32;">
-                Difference between required Potassium and your soil value:
-                <b>{{ diff_k }}</b>
-            </p>
+            <!-- FULL RECOMMENDATION - PROPERLY FORMATTED -->
             <div style="
-                background:#f1f8e9;
-                padding:15px;
-                border-left:6px solid #2e7d32;
-                border-radius:8px;
-                color:#1b5e20;
-                font-size:16px;
-            ">
-                {{ recommendation3 }}
-            </div>
-        </div>
+            background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
+            padding:35px;
+            border-radius:15px;
+            border:3px solid #2e7d32;
+            margin-bottom:35px;
+            line-height:1.9;
+            color:#1b5e20;
+            font-size:15px;
+            white-space:pre-wrap;
+            word-wrap:break-word;
+            font-family:'Segoe UI', Arial, sans-serif;
+        ">{{ prediction }}</div>
 
-        <!-- Action Buttons -->
-        <div style="text-align:center; margin-top:30px;">
-            <a href="FertilizerRecommendation.html"
-               style="
+            <!-- Input Summary -->
+            {% if form_data %}
+            <h3 style="color:#1b5e20; margin-bottom:20px; margin-top:30px;">📋 Your Input Parameters</h3>
+
+            <div style="
+            display:grid;
+            grid-template-columns:1fr 1fr 1fr;
+            gap:15px;
+            margin-bottom:30px;
+        ">
+                <div style="background:#f5f5f5; padding:15px; border-radius:10px;">
+                    <p style="margin:0; font-size:13px; color:#666; line-height:1.8;">
+                        <strong>🌡️ Temperature:</strong><br>
+                        {{ form_data.get('temperature') }}°C<br><br>
+                        <strong>💧 Humidity:</strong><br>
+                        {{ form_data.get('humidity') }}%<br><br>
+                        <strong>🌊 Moisture:</strong><br>
+                        {{ form_data.get('moisture') }}
+                    </p>
+                </div>
+
+                <div style="background:#f5f5f5; padding:15px; border-radius:10px;">
+                    <p style="margin:0; font-size:13px; color:#666; line-height:1.8;">
+                        <strong>🌱 Soil Type:</strong><br>
+                        {{ form_data.get('soil') }}<br><br>
+                        <strong>🌾 Crop:</strong><br>
+                        {{ form_data.get('cropname') }}
+                    </p>
+                </div>
+
+                <div style="background:#f5f5f5; padding:15px; border-radius:10px;">
+                    <p style="margin:0; font-size:13px; color:#666; line-height:1.8;">
+                        <strong>🧬 Nitrogen:</strong><br>
+                        {{ form_data.get('nitrogen') }}<br><br>
+                        <strong>⚗️ Phosphorous:</strong><br>
+                        {{ form_data.get('phosphorous') }}<br><br>
+                        <strong>✨ Potassium:</strong><br>
+                        {{ form_data.get('potassium') }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Info Box -->
+            <div
+                style="background:#e3f2fd; padding:20px; border-radius:10px; border-left:4px solid #1565c0; margin-bottom:30px;">
+                <h4 style="color:#1565c0; margin-top:0;">✅ Professional Agricultural Recommendation</h4>
+                <p style="margin:10px 0 0 0; font-size:14px; color:#333;">
+                    This recommendation was generated using our hybrid intelligence system which combines advanced ML
+                    models with Ollama AI.
+                    Follow the application guidelines provided above for optimal results.
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div style="text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <a href="/FertilizerRecommendation.html" style="
                     background:#1b5e20;
                     color:white;
                     padding:12px 30px;
                     border-radius:25px;
                     text-decoration:none;
                     font-weight:600;
-                    margin-right:10px;
-               ">
-                🔁 Check Again
-            </a>
+                    display:inline-block;
+                    transition:all 0.3s ease;
+                    cursor:pointer;
+                ">
+                    🔁 New Recommendation
+                </a>
 
-            <a href="PesticideRecommendation.html"
-               style="
+                <button onclick="window.print()" style="
+                    background:#558b2f;
+                    color:white;
+                    padding:12px 30px;
+                    border-radius:25px;
+                    border:none;
+                    font-weight:600;
+                    cursor:pointer;
+                    transition:all 0.3s ease;
+                ">
+                    🖨️ Print Recommendation
+                </button>
+
+                <a href="/PesticideRecommendation.html" style="
                     background:#1565c0;
                     color:white;
                     padding:12px 30px;
                     border-radius:25px;
                     text-decoration:none;
                     font-weight:600;
-               ">
-                ➡ Pest Control
-            </a>
+                    display:inline-block;
+                    transition:all 0.3s ease;
+                    cursor:pointer;
+                ">
+                    ➡️ Pesticide Recommendation
+                </a>
+            </div>
+
         </div>
 
     </div>
-
-  </div>
-
 </section>
 
 {% endblock %}

@@ -1,18 +1,19 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html">Home</a></li>
-<li><a href="CropRecommendation.html">Crop</a></li>
-<li><a href="FertilizerRecommendation.html" class="active">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html">Pesticide</a></li>
-<li><a href="PlantDisease.html">Plant Disease</a></li>
+<li><a href="/">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html" class="active">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
 
 {% block body %}
 
 <section style="
     min-height: 90vh;
-    background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+    background: linear-gradient(135deg, #c8e6c9, #bbdefb);
     padding: 70px 0;
 ">
 
@@ -26,7 +27,7 @@
         font-weight:700;
         margin-bottom:10px;
     ">
-        🌱 Fertilizer Recommendation
+      🧪 Fertilizer Recommendation System
     </h2>
 
     <p style="
@@ -35,105 +36,170 @@
         font-size:18px;
         margin-bottom:40px;
     ">
-        Get informed fertilizer advice based on your soil nutrients
+      Get 2-3 customized fertilizer recommendations for your farm
     </p>
 
     <!-- Form Card -->
     <div style="
-        max-width:420px;
+        max-width:500px;
         margin:auto;
         background:#ffffff;
         padding:35px;
-        border-radius:20px;
+        border-radius:22px;
         box-shadow:0 12px 30px rgba(0,0,0,0.15);
     ">
 
-      <form method="POST" action="{{ url_for('fertilizer_recommend') }}">
+      <!-- Fertilizer Recommendation Form -->
+      <form method="POST" action="{{ url_for('recommend_fertilizer') }}">
+
+        <!-- Temperature -->
+        <label style="font-weight:600; display:block; margin-bottom:8px;">🌡️ Temperature (°C):</label>
+        <input type="number" step="0.1" name="temperature" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 25">
+
+        <!-- Humidity -->
+        <label style="font-weight:600; display:block; margin-bottom:8px;">💧 Humidity (%):</label>
+        <input type="number" step="0.1" name="humidity" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 60">
+
+        <!-- Moisture -->
+        <label style="font-weight:600; display:block; margin-bottom:8px;">🌊 Soil Moisture:</label>
+        <input type="number" step="0.1" name="moisture" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 50">
+
+        <!-- Soil Type -->
+        <label style="font-weight:600; display:block; margin-bottom:8px;">🌱 Soil Type:</label>
+        <select name="soil" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;">
+          <option value="">-- Select soil type --</option>
+          {% for soil_type in soils %}
+          <option value="{{ soil_type }}">
+            {{ soil_type }}
+          </option>
+          {% endfor %}
+        </select>
+
+        <!-- Crop Type -->
+        <label style="font-weight:600; display:block; margin-bottom:8px;">🌾 Crop Type:</label>
+        <select name="cropname" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;">
+          <option value="">-- Select crop --</option>
+          {% for crop_type in crops %}
+          <option value="{{ crop_type }}">
+            {{ crop_type }}
+          </option>
+          {% endfor %}
+        </select>
 
         <!-- Nitrogen -->
-        <div class="form-group">
-          <label style="color:#1b5e20; font-weight:600;">
-            Nitrogen (N)
-          </label>
-          <input type="number" name="nitrogen"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 50"
-            required
-            style="font-weight:600;">
-        </div>
+        <label style="font-weight:600; display:block; margin-bottom:8px;">🧬 Nitrogen (N):</label>
+        <input type="number" name="nitrogen" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 50" min="0">
 
         <!-- Phosphorous -->
-        <div class="form-group">
-          <label style="color:#1b5e20; font-weight:600;">
-            Phosphorous (P)
-          </label>
-          <input type="number" name="phosphorous"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 40"
-            required
-            style="font-weight:600;">
-        </div>
+        <label style="font-weight:600; display:block; margin-bottom:8px;">⚗️ Phosphorous (P):</label>
+        <input type="number" name="phosphorous" required
+          style="width:100%;padding:12px;margin-bottom:18px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 50" min="0">
 
         <!-- Potassium -->
-        <div class="form-group">
-          <label style="color:#1b5e20; font-weight:600;">
-            Potassium (K)
-          </label>
-          <input type="number" name="potassium"
-            class="form-control"
-            min="0" max="100"
-            placeholder="Example: 60"
-            required
-            style="font-weight:600;">
-        </div>
+        <label style="font-weight:600; display:block; margin-bottom:8px;">✨ Potassium (K):</label>
+        <input type="number" name="potassium" required
+          style="width:100%;padding:12px;margin-bottom:25px;border-radius:10px;border:2px solid #ccc;box-sizing:border-box;"
+          placeholder="e.g., 50" min="0">
 
-        <!-- Crop -->
-        <div class="form-group">
-          <label style="color:#1b5e20; font-weight:600;">
-            Crop you want to grow
-          </label>
-          <select name="cropname" class="form-control" required style="font-weight:600;">
-            <option selected disabled>Select crop</option>
-            <option>apple</option>
-            <option>banana</option>
-            <option>coffee</option>
-            <option>cotton</option>
-            <option>grapes</option>
-            <option>groundnut</option>
-            <option>jute</option>
-            <option>maize</option>
-            <option>mango</option>
-            <option>orange</option>
-            <option>paddy</option>
-            <option>rice</option>
-            <option>sugarcane</option>
-            <option>wheat</option>
-          </select>
-        </div>
-
-        <!-- Button -->
-        <div style="text-align:center; margin-top:30px;">
-          <button type="submit"
-            style="
-                background:#1b5e20;
-                color:white;
-                font-size:18px;
-                font-weight:600;
-                padding:12px 40px;
-                border:none;
-                border-radius:30px;
-                transition:0.3s;
-            ">
-            🌾 Predict Fertilizer
+        <!-- Submit Button -->
+        <div style="text-align:center;">
+          <button type="submit" style="
+            background:linear-gradient(135deg,#2e7d32,#1b5e20);
+            color:white;
+            font-size:18px;
+            font-weight:600;
+            padding:14px 50px;
+            border:none;
+            border-radius:30px;
+            cursor:pointer;
+            transition:all 0.3s ease;
+            box-shadow:0 4px 15px rgba(46,125,50,0.3);
+            width:100%;
+          ">
+            ✅ Get Recommendations
           </button>
         </div>
 
       </form>
 
+      <!-- Error Message -->
+      {% if error %}
+      <div style="
+        margin-top:20px;
+        padding:15px;
+        background:#ffebee;
+        border-left:4px solid #d32f2f;
+        color:#c62828;
+        border-radius:8px;
+        text-align:center;
+        white-space:pre-wrap;
+      ">
+        <strong>{{ error }}</strong>
+      </div>
+      {% endif %}
+
     </div>
+
+    <!-- Information Section -->
+    <div style="
+      max-width:800px;
+      margin:40px auto 0;
+      padding:30px;
+      background:#ffffff;
+      border-radius:15px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    ">
+
+      <h3 style="color:#1b5e20; font-size:22px; margin-bottom:15px;">
+        🎯 Smart Fertilizer Recommendation
+      </h3>
+
+      <p style="color:#555; font-size:14px; line-height:1.8; margin-bottom:15px;">
+        Our system analyzes your farm conditions and provides 2-3 different fertilizer options tailored to your specific
+        needs.
+        Each recommendation includes application rates, frequency, practical tips, and precautions.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:14px;line-height:1.8;">
+
+        <div>
+          <h4 style="color:#1565c0;margin-bottom:8px;">✨ What You Get:</h4>
+          <ul style="margin:5px;padding-left:20px;">
+            <li>✓ 2-3 fertilizer options</li>
+            <li>✓ Exact application rates</li>
+            <li>✓ Application frequency</li>
+            <li>✓ Practical tips</li>
+            <li>✓ Safety precautions</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color:#1565c0;margin-bottom:8px;">📊 Analyzed Parameters:</h4>
+          <ul style="margin:5px;padding-left:20px;">
+            <li>🌡️ Temperature & Humidity</li>
+            <li>🌊 Soil Moisture & Type</li>
+            <li>🌾 Crop Type</li>
+            <li>🧬 Current NPK Levels</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
+
 </section>
 
 {% endblock %}

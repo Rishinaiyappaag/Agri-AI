@@ -1,11 +1,12 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html" class="active">Home</a></li>
-<li><a href="CropRecommendation.html">Crop</a></li>
-<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html">Pesticide</a></li>
-<li><a href="PlantDisease.html">Plant Disease</a></li>
+<li><a href="/" class="active">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
 
 {% block body %}
@@ -41,12 +42,12 @@
     ">
       <b>Agri AI</b> empowers Indian farmers using AI-driven insights for
       <b>Crop Recommendation</b>, <b>Fertilizer Guidance</b>,
-      <b>Pest Control</b>, and <b>Plant Disease Detection</b>.
+      <b>Pest Control</b>, <b>Plant Disease Detection</b> and <b>Yield Prediction</b>.
       Our goal is to protect soil health, maximize yield, and secure livelihoods.
     </p>
 
     <img src="{{ url_for('static', filename='img/table-set.jpeg') }}"
-         style="width: 90%; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+      style="width: 90%; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
   </div>
 </section>
 
@@ -84,13 +85,12 @@
             height: 100%;
         ">
           <img src="{{ url_for('static', filename='img/popular-2.jpg') }}"
-               style="width:100%; border-radius:15px; margin-bottom:15px;">
+            style="width:100%; border-radius:15px; margin-bottom:15px;">
           <h3 style="color:#1b5e20;">🌱 Crop Recommendation</h3>
           <p style="color:#2e7d32;">
             Identify the best crop for your soil and climate using machine learning.
           </p>
-          <a href="CropRecommendation.html"
-             style="color:#1565c0; font-weight:600;">
+          <a href="/CropRecommendation.html" style="color:#1565c0; font-weight:600;">
             Proceed →
           </a>
         </div>
@@ -106,13 +106,12 @@
             height: 100%;
         ">
           <img src="{{ url_for('static', filename='img/popular-3.jpg') }}"
-               style="width:100%; border-radius:15px; margin-bottom:15px;">
+            style="width:100%; border-radius:15px; margin-bottom:15px;">
           <h3 style="color:#0d47a1;">🧪 Fertilizer Recommendation</h3>
           <p style="color:#1565c0;">
             Balance soil nutrients precisely to improve crop yield sustainably.
           </p>
-          <a href="FertilizerRecommendation.html"
-             style="color:#1b5e20; font-weight:600;">
+          <a href="/FertilizerRecommendation.html" style="color:#1b5e20; font-weight:600;">
             Proceed →
           </a>
         </div>
@@ -128,13 +127,12 @@
             height: 100%;
         ">
           <img src="{{ url_for('static', filename='img/popular-1.jpg') }}"
-               style="width:100%; border-radius:15px; margin-bottom:15px;">
+            style="width:100%; border-radius:15px; margin-bottom:15px;">
           <h3 style="color:#1b5e20;">🐛 Pesticide Recommendation</h3>
           <p style="color:#2e7d32;">
             Detect pests early and get safe, effective pesticide suggestions.
           </p>
-          <a href="PesticideRecommendation.html"
-             style="color:#1565c0; font-weight:600;">
+          <a href="/PesticideRecommendation.html" style="color:#1565c0; font-weight:600;">
             Proceed →
           </a>
         </div>
@@ -157,14 +155,13 @@
       <div class="col-md-4">
         <h4 style="color:#1b5e20;">💚 For Indian Farmers</h4>
         <p style="color:#2e7d32; font-size:14px;">
-          Empowering those who feed the nation through technology, trust, and tradition.
+          Empowering those who feed the nation through technology.
         </p>
       </div>
 
       <div class="col-md-4">
         <h4 style="color:#1b5e20;">🔗 Connect</h4>
-        <a href="https://www.linkedin.com/in/rishinaiyappaag"
-           style="color:#1565c0; font-weight:600;">
+        <a href="https://www.linkedin.com/in/rishinaiyappaag" style="color:#1565c0; font-weight:600;">
           LinkedIn Profile
         </a>
       </div>
@@ -174,7 +171,7 @@
     <hr>
 
     <p style="text-align:center; color:#1565c0;">
-      © 2026 Rishin Aiyappa A G | Agri AI
+      © 2026 Agri AI
     </p>
   </div>
 </footer>

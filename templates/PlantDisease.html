@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 
 {% block nav %}
-<li><a href="index.html">Home</a></li>
-<li><a href="CropRecommendation.html">Crop</a></li>
-<li><a href="FertilizerRecommendation.html">Fertilizer</a></li>
-<li><a href="PesticideRecommendation.html">Pesticide</a></li>
-<li><a href="PlantDisease.html" class="active">Plant Disease</a></li>
+<li><a href="/" class="active">Home</a></li>
+<li><a href="/CropRecommendation.html">Crop</a></li>
+<li><a href="/FertilizerRecommendation.html">Fertilizer</a></li>
+<li><a href="/PesticideRecommendation.html">Pesticide</a></li>
+<li><a href="/PlantDisease.html">Plant Disease</a></li>
+<li><a href="/yield">Yield Prediction</a></li>
 {% endblock %}
-
 {% block body %}
 
 <section style="
@@ -26,7 +26,7 @@
         font-weight:700;
         margin-bottom:10px;
     ">
-        🌿 Plant Leaf Disease Detection
+      🌿 Plant Leaf Disease Detection
     </h2>
 
     <p style="
@@ -35,7 +35,7 @@
         font-size:18px;
         margin-bottom:40px;
     ">
-        Upload a clear image of a plant leaf to identify the disease accurately
+      Upload a clear image of a plant leaf to identify the disease accurately
     </p>
 
     <!-- Upload Card -->
@@ -49,11 +49,7 @@
         text-align:center;
     ">
 
-      <form
-        action="/plant-disease-predict"
-        method="POST"
-        enctype="multipart/form-data"
-      >
+      <form action="/plant-disease-predict" method="POST" enctype="multipart/form-data">
 
         <!-- File Input Box -->
         <div style="
@@ -63,16 +59,10 @@
             margin-bottom:25px;
             background:#f9fff9;
         ">
-          <input
-            type="file"
-            name="image"
-            accept="image/png, image/jpeg"
-            required
-            style="
+          <input type="file" name="image" accept="image/png, image/jpeg" required style="
               font-size:15px;
               color:#1b5e20;
-            "
-          >
+            ">
           <p style="
               margin-top:12px;
               font-size:14px;
@@ -83,9 +73,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button
-          type="submit"
-          style="
+        <button type="submit" style="
             background:#1b5e20;
             color:white;
             font-size:18px;
@@ -95,10 +83,7 @@
             border-radius:30px;
             cursor:pointer;
             transition:0.3s;
-          "
-          onmouseover="this.style.background='#2e7d32'"
-          onmouseout="this.style.background='#1b5e20'"
-        >
+          " onmouseover="this.style.background='#2e7d32'" onmouseout="this.style.background='#1b5e20'">
           🔍 Predict Disease
         </button>
 
