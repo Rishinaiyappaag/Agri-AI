@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGRI AI - Login & Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 50%, #f1f8e9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.6s ease-out;
+            min-height: 520px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ═══════════════════════════════
+           LEFT — GREEN PANEL
+        ═══════════════════════════════ */
+        .left-panel {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            padding: 50px 40px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-icons span {
+            position: absolute;
+            font-size: 110px;
+            opacity: 0.12;
+            animation: float 5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bg-icons span:nth-child(1) {
+            top: 4%;
+            right: 4%;
+            animation-delay: 0s;
+        }
+
+        .bg-icons span:nth-child(2) {
+            bottom: 8%;
+            right: 6%;
+            font-size: 90px;
+            animation-delay: 1.2s;
+        }
+
+        .bg-icons span:nth-child(3) {
+            top: 40%;
+            right: 20%;
+            font-size: 80px;
+            animation-delay: 2.4s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(7deg);
+            }
+        }
+
+        .left-inner {
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .logo p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .tab-btn {
+            padding: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.25s;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.85);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .left-content {
+            display: none;
+        }
+
+        .left-content.active {
+            display: block;
+            animation: fadeIn 0.35s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* form fields */
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.28);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.14);
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.25s;
+        }
+
+        .field input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .btn-green {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            background: #fff9e6;
+            color: #1b5e20;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 8px;
+            font-family: inherit;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-green:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn-green:active {
+            transform: translateY(0);
+        }
+
+        .btn-green:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint {
+            font-size: 13px;
+            text-align: center;
+            margin-top: 14px;
+            opacity: 0.85;
+        }
+
+        .hint a {
+            color: #fff9e6;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .hint a:hover {
+            text-decoration: underline;
+        }
+
+        /* features card (left green, Sign Up tab) */
+        .features-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+
+        .features-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff9e6;
+            margin-bottom: 8px;
+        }
+
+        .features-card p {
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.92;
+            margin-bottom: 10px;
+        }
+
+        .features-card ul {
+            list-style: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+            padding-top: 10px;
+        }
+
+        .features-card li {
+            font-size: 12px;
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 7px;
+            opacity: 0.92;
+            line-height: 1.4;
+        }
+
+        .features-card li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #fff9e6;
+            font-weight: bold;
+        }
+
+        /* ═══════════════════════════════
+           RIGHT — BLUE PANEL
+        ═══════════════════════════════ */
+        .right-panel {
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+            color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .right-panel .bg-icons span {
+            opacity: 0.18;
+        }
+
+        .right-panel .bg-icons span:nth-child(1) {
+            font-size: 110px;
+            top: 3%;
+            right: 4%;
+            animation-delay: 0s;
+        }
+
+        .right-panel .bg-icons span:nth-child(2) {
+            font-size: 95px;
+            top: 48%;
+            right: 8%;
+            animation-delay: 1.2s;
+        }
+
+        .right-panel .bg-icons span:nth-child(3) {
+            font-size: 100px;
+            bottom: 6%;
+            right: 16%;
+            animation-delay: 2.4s;
+        }
+
+        .right-panel .bg-icons span:nth-child(4) {
+            font-size: 88px;
+            top: 25%;
+            right: 25%;
+            animation-delay: 3.6s;
+        }
+
+        .right-inner {
+            position: relative;
+            z-index: 2;
+        }
+
+        .right-content {
+            display: none;
+        }
+
+        .right-content.active {
+            display: block;
+            animation: fadeIn 0.35s ease;
+        }
+
+        /* info card (right blue, Sign In tab) */
+        .info-header {
+            margin-bottom: 18px;
+        }
+
+        .info-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .info-header p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+
+        .info-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff9e6;
+            margin-bottom: 8px;
+        }
+
+        .info-card p {
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.92;
+            margin-bottom: 10px;
+        }
+
+        .info-card ul {
+            list-style: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+            padding-top: 10px;
+        }
+
+        .info-card li {
+            font-size: 12px;
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 7px;
+            opacity: 0.92;
+            line-height: 1.4;
+        }
+
+        .info-card li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #fff9e6;
+            font-weight: bold;
+        }
+
+        /* signup form (right blue, Sign Up tab) */
+        .su-field {
+            margin-bottom: 13px;
+        }
+
+        .su-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .su-field input {
+            width: 100%;
+            padding: 11px 13px;
+            border: 2px solid rgba(255, 255, 255, 0.28);
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.13);
+            color: white;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.25s;
+        }
+
+        .su-field input::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .su-field input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .btn-blue {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 9px;
+            background: #fff9e6;
+            color: #1565c0;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 6px;
+            font-family: inherit;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-blue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn-blue:active {
+            transform: translateY(0);
+        }
+
+        .btn-blue:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* messages */
+        .msg {
+            padding: 11px 14px;
+            border-radius: 9px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .msg.error {
+            background: rgba(211, 47, 47, 0.2);
+            border: 2px solid #ff5252;
+            color: #ffcdd2;
+        }
+
+        .msg.success {
+            background: rgba(46, 125, 50, 0.2);
+            border: 2px solid #66bb6a;
+            color: #c8e6c9;
+        }
+
+        /* spinner */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.15);
+            border-top-color: #1b5e20;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .btn-blue .spinner {
+            border-top-color: #1565c0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .right-panel {
+                display: none;
+            }
+
+            .left-panel {
+                padding: 50px 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ══════════════════════
+         LEFT — GREEN PANEL
+    ══════════════════════ -->
+        <div class="left-panel">
+            <div class="bg-icons">
+                <span>🌾</span>
+                <span>🚜</span>
+                <span>🌱</span>
+            </div>
+
+            <div class="left-inner">
+                <div class="logo">
+                    <h2>🌾 AGRI AI</h2>
+                    <p>Smart Farming Solutions</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" id="btn-signin" onclick="switchTab('signin')">Sign In</button>
+                    <button class="tab-btn" id="btn-signup" onclick="switchTab('signup')">Sign Up</button>
+                </div>
+
+                <!-- Sign In tab: email + password form -->
+                <div id="left-signin" class="left-content active">
+                    {% if error and active_tab == 'signin' %}
+                    <div class="msg error">{{ error }}</div>
+                    {% endif %}
+                    <form method="POST" action="/login" id="signin-form" onsubmit="handleSignIn(event)">
+                        <input type="hidden" name="action" value="signin">
+                        <div class="field">
+                            <label>📧 Email Address</label>
+                            <input type="email" name="signin_email" placeholder="Enter your email"
+                                value="{{ signin_email or '' }}" required>
+                        </div>
+                        <div class="field">
+                            <label>🔒 Password</label>
+                            <input type="password" name="signin_password" placeholder="Enter your password" required>
+                        </div>
+                        <button class="btn-green" type="submit" id="signin-btn">Sign In</button>
+                    </form>
+                    <div class="hint">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></div>
+                </div>
+
+                <!-- Sign Up tab: features card only -->
+                <div id="left-signup" class="left-content">
+                    <div class="features-card">
+                        <h3>🌍 Welcome to Smart Farming</h3>
+                        <p>Agri AI empowers Indian farmers with AI to make smarter decisions:</p>
+                        <ul>
+                            <li>Identify the best crops for your soil</li>
+                            <li>Optimize fertilizer usage</li>
+                            <li>Detect pests early</li>
+                            <li>Diagnose plant diseases</li>
+                            <li>Predict crop yield</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════
+         RIGHT — BLUE PANEL
+    ══════════════════════ -->
+        <div class="right-panel">
+            <div class="bg-icons">
+                <span>🌾</span>
+                <span>🚜</span>
+                <span>🌱</span>
+                <span>🌽</span>
+            </div>
+
+            <div class="right-inner">
+
+                <!-- Sign In tab: info card only (no form) -->
+                <div id="right-signin" class="right-content active">
+                    <div class="info-header">
+                        <h2>Join Us</h2>
+                        <p>Create your farming account today</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🌍 Welcome to Smart Farming</h3>
+                        <p>Agri AI empowers Indian farmers with AI to make smarter decisions:</p>
+                        <ul>
+                            <li>Identify the best crops for your soil</li>
+                            <li>Optimize fertilizer usage</li>
+                            <li>Detect pests early</li>
+                            <li>Diagnose plant diseases</li>
+                            <li>Predict crop yield</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Sign Up tab: signup form only (no info card) -->
+                <div id="right-signup" class="right-content">
+                    {% if error and active_tab == 'signup' %}
+                    <div class="msg error">{{ error }}</div>
+                    {% endif %}
+                    {% if success %}
+                    <div class="msg success">{{ success }}</div>
+                    {% endif %}
+                    <form method="POST" action="/login" id="signup-form" onsubmit="handleSignUp(event)">
+                        <input type="hidden" name="action" value="signup">
+                        <div class="su-field">
+                            <label>👤 Full Name</label>
+                            <input type="text" name="signup_name" placeholder="Enter your full name"
+                                value="{{ signup_name or '' }}" required>
+                        </div>
+                        <div class="su-field">
+                            <label>📧 Email Address</label>
+                            <input type="email" name="signup_email" placeholder="Enter your email"
+                                value="{{ signup_email or '' }}" required>
+                        </div>
+                        <div class="su-field">
+                            <label>🔒 Password</label>
+                            <input type="password" name="signup_password" placeholder="Min 6 characters" minlength="6"
+                                required>
+                        </div>
+                        <div class="su-field">
+                            <label>🔐 Confirm Password</label>
+                            <input type="password" name="signup_confirm" placeholder="Confirm password" required>
+                        </div>
+                        <button class="btn-blue" type="submit" id="signup-btn">Create Account</button>
+                    </form>
+                    <div class="hint" style="color:rgba(255,255,255,0.85);">
+                        Already have an account? <a onclick="switchTab('signin')">Sign In</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const isSignin = (tab === 'signin');
+            document.getElementById('btn-signin').classList.toggle('active', isSignin);
+            document.getElementById('btn-signup').classList.toggle('active', !isSignin);
+            document.getElementById('left-signin').classList.toggle('active', isSignin);
+            document.getElementById('left-signup').classList.toggle('active', !isSignin);
+            document.getElementById('right-signin').classList.toggle('active', isSignin);
+            document.getElementById('right-signup').classList.toggle('active', !isSignin);
+        }
+
+        function handleSignIn(e) {
+            const btn = document.getElementById('signin-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Signing in...';
+            // allow form to submit naturally — no preventDefault
+        }
+
+        function handleSignUp(e) {
+            const form = document.getElementById('signup-form');
+            const pass = form.querySelector('[name="signup_password"]').value;
+            const confirm = form.querySelector('[name="signup_confirm"]').value;
+
+            if (pass !== confirm) {
+                e.preventDefault();
+                // show inline error above form
+                let err = form.querySelector('.inline-err');
+                if (!err) {
+                    err = document.createElement('div');
+                    err.className = 'msg error inline-err';
+                    form.insertBefore(err, form.firstChild);
+                }
+                err.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            const btn = document.getElementById('signup-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Creating account...';
+            // allow form to submit naturally
+        }
+
+        // On page load: restore active tab based on server response
+        window.addEventListener('DOMContentLoaded', function () {
+            const activeTab = "{{ active_tab|default('signin') }}";
+            if (activeTab === 'signup') {
+                switchTab('signup');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

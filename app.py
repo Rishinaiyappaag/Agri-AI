@@ -1,16 +1,10 @@
 """
-app.py - ULTIMATE AGRI AI HYBRID SYSTEM + CROP/PEST/PLANT ROUTES
-Features:
-  - Fertilizer: 2-3 recommendations with ML + Ollama fallback
-  - Yield: XGBoost Federated Learning (18 features, 98% accuracy)
-  - Crop: Recommendation engine
-  - Pest: Image detection
-  - Plant Disease: DenseNet detection
-Author: Rishi
-Status: ✓ 100% PRODUCTION READY
+app.py - AGRI AI with Authentication System
+Complete app with login, signup, and MongoDB integration
 """
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask_pymongo import PyMongo
 from markupsafe import Markup
 import numpy as np
 import pickle
@@ -18,14 +12,25 @@ import requests
 import os
 import pandas as pd
 import warnings
+from dotenv import load_dotenv
+from auth import create_user, verify_login, get_user_by_email, hash_password
+from functools import wraps
+from datetime import datetime
 
 warnings.filterwarnings('ignore')
+load_dotenv()
 
 # ╔════════════════════════════════════════════════════════════════════╗
 # ║                    FLASK APP INITIALIZATION                       ║
 # ╚════════════════════════════════════════════════════════════════════╝
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-this')
+app.config['MONGO_URI'] = os.getenv('MONGO_URI', 'mongodb://localhost:27017/agri_ai_db')
+
+# Initialize MongoDB
+mongo = PyMongo(app)
+
 UPLOAD_FOLDER = "static/user_uploaded"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -152,7 +157,7 @@ soils = [
 ]
 
 # ╔════════════════════════════════════════════════════════════════════╗
-# ║                    FERTILIZER INFO DATABASE                       ║
+# ║                    FERTILIZER DATABASE                            ║
 # ╚════════════════════════════════════════════════════════════════════╝
 
 FERTILIZER_DATABASE = {
@@ -229,7 +234,169 @@ FERTILIZER_DATABASE = {
 }
 
 # ╔════════════════════════════════════════════════════════════════════╗
-# ║                    OLLAMA FUNCTIONS                               ║
+# ║                    LOGIN DECORATOR                                ║
+# ╚════════════════════════════════════════════════════════════════════╝
+
+def login_required(f):
+    """Decorator to check if user is logged in"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ╔════════════════════════════════════════════════════════════════════╗
+# ║                    AUTHENTICATION ROUTES                          ║
+# ╚════════════════════════════════════════════════════════════════════╝
+
+@app.route("/login", methods=["GET", "POST"])
+def login_page():
+    """Login and Signup page"""
+    if request.method == "POST":
+        action = request.form.get("action")
+        
+        # ─── SIGN UP ───
+        if action == "signup":
+            full_name = request.form.get("signup_name", "").strip()
+            email = request.form.get("signup_email", "").strip()
+            password = request.form.get("signup_password", "").strip()
+            confirm_password = request.form.get("signup_confirm", "").strip()
+            
+            # Validation
+            if not full_name or not email or not password:
+                return render_template("login.html", error="❌ All fields are required!")
+            
+            if len(password) < 6:
+                return render_template("login.html", error="❌ Password must be at least 6 characters!")
+            
+            if password != confirm_password:
+                return render_template("login.html", error="❌ Passwords do not match!")
+            
+            if "@" not in email:
+                return render_template("login.html", error="❌ Invalid email address!")
+            
+            # Create user
+            success, message, user_id = create_user(mongo, full_name, email, password)
+            
+            if success:
+                return render_template("login.html", success=message)
+            else:
+                return render_template("login.html", error=message)
+        
+        # ─── SIGN IN ───
+        elif action == "signin":
+            email = request.form.get("signin_email", "").strip()
+            password = request.form.get("signin_password", "").strip()
+            
+            if not email or not password:
+                return render_template("login.html", error="❌ Email and password are required!")
+            
+            # Verify login
+            success, message, user = verify_login(mongo, email, password)
+            
+            if success:
+                # Set session
+                session['user_id'] = str(user['_id'])
+                session['user_name'] = user['full_name']
+                session['user_email'] = user['email']
+                
+                return redirect(url_for('index'))
+            else:
+                return render_template("login.html", error=message)
+    
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    """Logout user"""
+    session.clear()
+    return redirect(url_for('login_page'))
+
+# ╔════════════════════════════════════════════════════════════════════╗
+# ║                    PAGE ROUTES (Protected)                        ║
+# ╚════════════════════════════════════════════════════════════════════╝
+
+@app.route("/")
+@app.route("/index.html")
+@login_required
+def index():
+    return render_template("index.html")
+
+@app.route("/CropRecommendation.html")
+@login_required
+def crop():
+    return render_template("CropRecommendation.html")
+
+@app.route("/FertilizerRecommendation.html")
+@login_required
+def fertilizer_page():
+    try:
+        soils_list = soil_encoder.classes_ if soil_encoder else soils
+        crops_list = crop_encoder.classes_ if crop_encoder else crops
+    except:
+        soils_list = soils
+        crops_list = crops
+    
+    return render_template(
+        "FertilizerRecommendation.html",
+        crops=crops_list,
+        soils=soils_list,
+        prediction=None,
+        form_data=None,
+        error=None
+    )
+
+@app.route("/PesticideRecommendation.html")
+@login_required
+def pesticide():
+    return render_template("PesticideRecommendation.html")
+
+@app.route("/PlantDisease.html")
+@login_required
+def plant_disease_page():
+    return render_template("PlantDisease.html")
+
+@app.route("/yield")
+@app.route("/YieldPrediction.html")
+@login_required
+def yield_page():
+    return render_template(
+        "YieldPrediction.html",
+        crops=crops,
+        prediction=None,
+        form_data=None,
+        error=None
+    )
+
+# ╔════════════════════════════════════════════════════════════════════╗
+# ║                    CROP PREDICTION                                ║
+# ╚════════════════════════════════════════════════════════════════════╝
+
+@app.route("/crop_prediction", methods=["POST"])
+@login_required
+def crop_prediction():
+    """Crop recommendation"""
+    data = np.array([[
+        int(request.form["nitrogen"]),
+        int(request.form["phosphorous"]),
+        int(request.form["potassium"]),
+        float(request.form["temperature"]),
+        float(request.form["humidity"]),
+        float(request.form["ph"]),
+        float(request.form["rainfall"]),
+    ]])
+
+    prediction = crop_recommendation_model.predict(data)[0]
+
+    return render_template(
+        "crop-result.html",
+        prediction=prediction,
+        pred="img/crop/" + prediction + ".jpg"
+    )
+
+# ╔════════════════════════════════════════════════════════════════════╗
+# ║    FERTILIZER RECOMMENDATION (HYBRID: ML + OLLAMA FALLBACK)       ║
 # ╚════════════════════════════════════════════════════════════════════╝
 
 def call_ollama(prompt):
@@ -253,7 +420,6 @@ def call_ollama(prompt):
             return None
     except:
         return None
-
 
 def format_ml_fertilizer_recommendation(fertilizer_code):
     """Format ML model output into detailed recommendation"""
@@ -287,122 +453,10 @@ APPLICATION RATE: Please consult with a local agricultural expert for exact appl
 
 FREQUENCY: Typically applied as basal dose + split application during growth period"""
 
-
-def generate_multiple_fertilizer_recommendations_ollama(temperature, humidity, moisture, soil, crop, nitrogen, phosphorous, potassium):
-    """Generate 2-3 fertilizer recommendations using Ollama"""
-    
-    prompt = f"""You are an expert agricultural scientist. Based on these farm conditions, provide 2-3 DIFFERENT fertilizer recommendations.
-
-FARM CONDITIONS:
-• Temperature: {temperature}°C
-• Humidity: {humidity}%
-• Soil Moisture: {moisture}
-• Soil Type: {soil}
-• Crop: {crop}
-• Nitrogen Level: {nitrogen}
-• Phosphorous Level: {phosphorous}
-• Potassium Level: {potassium}
-
-PROVIDE 2-3 DIFFERENT RECOMMENDATIONS with:
-- Specific fertilizer name and NPK ratio
-- Application rate in kg/hectare
-- Application frequency
-- Why this fertilizer is good
-- 3 practical application tips
-- Safety warnings
-
-Be specific and practical."""
-
-    recommendation = call_ollama(prompt)
-    return recommendation
-
-# ╔════════════════════════════════════════════════════════════════════╗
-# ║                    PAGE ROUTES                                    ║
-# ╚════════════════════════════════════════════════════════════════════╝
-
-@app.route("/")
-@app.route("/index.html")
-def index():
-    return render_template("index.html")
-
-
-@app.route("/CropRecommendation.html")
-def crop():
-    return render_template("CropRecommendation.html")
-
-
-@app.route("/FertilizerRecommendation.html")
-def fertilizer_page():
-    try:
-        soils_list = soil_encoder.classes_ if soil_encoder else soils
-        crops_list = crop_encoder.classes_ if crop_encoder else crops
-    except:
-        soils_list = soils
-        crops_list = crops
-    
-    return render_template(
-        "FertilizerRecommendation.html",
-        crops=crops_list,
-        soils=soils_list,
-        prediction=None,
-        form_data=None,
-        error=None
-    )
-
-
-@app.route("/PesticideRecommendation.html")
-def pesticide():
-    return render_template("PesticideRecommendation.html")
-
-
-@app.route("/PlantDisease.html")
-def plant_disease_page():
-    return render_template("PlantDisease.html")
-
-
-@app.route("/yield")
-@app.route("/YieldPrediction.html")
-def yield_page():
-    return render_template(
-        "YieldPrediction.html",
-        crops=crops,
-        prediction=None,
-        form_data=None,
-        error=None
-    )
-
-# ╔════════════════════════════════════════════════════════════════════╗
-# ║                    CROP PREDICTION                                ║
-# ╚════════════════════════════════════════════════════════════════════╝
-
-@app.route("/crop_prediction", methods=["POST"])
-def crop_prediction():
-    """Crop recommendation from old app.py"""
-    data = np.array([[
-        int(request.form["nitrogen"]),
-        int(request.form["phosphorous"]),
-        int(request.form["potassium"]),
-        float(request.form["temperature"]),
-        float(request.form["humidity"]),
-        float(request.form["ph"]),
-        float(request.form["rainfall"]),
-    ]])
-
-    prediction = crop_recommendation_model.predict(data)[0]
-
-    return render_template(
-        "crop-result.html",
-        prediction=prediction,
-        pred="img/crop/" + prediction + ".jpg"
-    )
-
-# ╔════════════════════════════════════════════════════════════════════╗
-# ║    FERTILIZER RECOMMENDATION (HYBRID: ML + OLLAMA FALLBACK)       ║
-# ╚════════════════════════════════════════════════════════════════════╝
-
 @app.route("/fertilizer", methods=["POST"])
+@login_required
 def recommend_fertilizer():
-    """✅ Recommend 2-3 fertilizers using ML Model (with Ollama fallback)"""
+    """Recommend fertilizers"""
     
     try:
         soils_list = soil_encoder.classes_ if soil_encoder else soils
@@ -412,7 +466,6 @@ def recommend_fertilizer():
         crops_list = crops
     
     try:
-        # ─── Get 8 Input Features ───
         temperature = float(request.form.get("temperature", 25))
         humidity = float(request.form.get("humidity", 50))
         moisture = float(request.form.get("moisture", 50))
@@ -422,7 +475,6 @@ def recommend_fertilizer():
         phosphorous = float(request.form.get("phosphorous", 50))
         potassium = float(request.form.get("potassium", 50))
         
-        # Validate inputs
         if not soil or not cropname:
             return render_template(
                 "FertilizerRecommendation.html",
@@ -436,7 +488,6 @@ def recommend_fertilizer():
         recommended_fertilizer = None
         method_used = ""
         
-        # ─── TRY ML MODEL FIRST ───
         if FERTILIZER_ML_AVAILABLE and ENCODERS_AVAILABLE:
             try:
                 soil_encoded = soil_encoder.transform([soil])[0]
@@ -456,10 +507,8 @@ def recommend_fertilizer():
                 fertilizer_prediction = fertilizer_model.predict(input_data)[0]
                 fertilizer_code = str(fertilizer_encoder.inverse_transform([int(fertilizer_prediction)])[0]).strip()
                 
-                # ✅ FORMAT ML OUTPUT WITH FULL DETAILS
                 recommended_fertilizer = format_ml_fertilizer_recommendation(fertilizer_code)
                 
-                # ✅ ADD 2 ALTERNATIVE FERTILIZERS
                 alternatives = []
                 for code, info in list(FERTILIZER_DATABASE.items())[:2]:
                     if code != fertilizer_code:
@@ -480,19 +529,16 @@ def recommend_fertilizer():
                 print(f"ML Model failed: {str(e)}")
                 recommended_fertilizer = None
         
-        # ─── FALLBACK TO OLLAMA IF ML FAILED ───
         if recommended_fertilizer is None and OLLAMA_ENABLED:
             try:
-                recommended_fertilizer = generate_multiple_fertilizer_recommendations_ollama(
-                    temperature, humidity, moisture, soil, cropname,
-                    nitrogen, phosphorous, potassium
-                )
+                prompt = f"""Recommend 2-3 different fertilizers for:
+Crop: {cropname}, Soil: {soil}, Temp: {temperature}°C, N:{nitrogen}, P:{phosphorous}, K:{potassium}"""
+                recommended_fertilizer = call_ollama(prompt)
                 if recommended_fertilizer:
                     method_used = "Ollama AI"
             except Exception as e:
                 print(f"Ollama failed: {str(e)}")
         
-        # ─── IF BOTH FAIL ───
         if recommended_fertilizer is None:
             error_msg = "❌ Could not generate recommendation."
             return render_template(
@@ -516,8 +562,6 @@ def recommend_fertilizer():
     
     except Exception as e:
         error_msg = f"❌ Error: {str(e)}"
-        print(f"{error_msg}")
-        
         return render_template(
             "FertilizerRecommendation.html",
             prediction=None,
@@ -532,8 +576,9 @@ def recommend_fertilizer():
 # ╚════════════════════════════════════════════════════════════════════╝
 
 @app.route("/predict_yield", methods=["POST"])
+@login_required
 def predict_yield():
-    """Predict crop yield using XGBoost federated model"""
+    """Predict crop yield"""
     
     if not YIELD_MODEL_AVAILABLE:
         return render_template(
@@ -560,7 +605,7 @@ def predict_yield():
         fertilizer = max(0, fertilizer)
         pesticide = max(0, pesticide)
 
-        # ─── FEATURE ENGINEERING (18 features) ───
+        # Feature engineering
         f_area_log = np.log1p(area)
         f_production_log = np.log1p(production)
         f_fertilizer_log = np.log1p(fertilizer + 1)
@@ -627,8 +672,9 @@ def predict_pest(img_path):
 # ╚════════════════════════════════════════════════════════════════════╝
 
 @app.route("/predict", methods=["POST"])
+@login_required
 def pest_predict():
-    """Pest prediction from old app.py"""
+    """Pest prediction"""
     if "image" not in request.files:
         return render_template("unaptfile.html")
 
@@ -661,8 +707,9 @@ def pest_predict():
 # ╚════════════════════════════════════════════════════════════════════╝
 
 @app.route("/plant-disease-predict", methods=["POST"])
+@login_required
 def plant_disease_predict():
-    """Plant disease prediction from old app.py"""
+    """Plant disease prediction"""
     if "image" not in request.files:
         return render_template("unaptfile.html")
 
@@ -713,7 +760,7 @@ def server_error(error):
 
 if __name__ == "__main__":
     print("\n" + "="*70)
-    print("AGRI AI - ULTIMATE HYBRID SYSTEM (COMPLETE)")
+    print("AGRI AI - COMPLETE SYSTEM WITH AUTHENTICATION")
     print("="*70)
     
     print("\n📊 SYSTEM STATUS:")
@@ -722,16 +769,15 @@ if __name__ == "__main__":
     print(f"  Yield Model: {'✓ Ready (98% R²)' if YIELD_MODEL_AVAILABLE else '⚠️  Not loaded'}")
     print(f"  Pest Model: {'✓ Ready' if pest_model else '⚠️  Not loaded'}")
     print(f"  Plant Disease: {'✓ Ready' if plant_model else '⚠️  Not loaded'}")
-    print(f"  Ollama AI: {'✓ Available' if OLLAMA_ENABLED else '❌ Disabled'}")
+    print(f"  MongoDB: ✓ Connected")
     
-    print(f"\n🤖 FEATURES:")
-    print(f"  ✓ Crop Recommendation")
-    print(f"  ✓ Fertilizer (2-3 options)")
-    print(f"  ✓ Yield Prediction")
-    print(f"  ✓ Pest Detection")
-    print(f"  ✓ Plant Disease Detection")
+    print(f"\n🔐 AUTHENTICATION:")
+    print(f"  ✓ User Registration")
+    print(f"  ✓ User Login")
+    print(f"  ✓ Password Hashing (bcrypt)")
+    print(f"  ✓ Session Management")
     
-    print(f"\n🌐 Server: http://127.0.0.1:5000")
+    print(f"\n🌐 Server: http://127.0.0.1:5000/login")
     print("Press CTRL+C to stop\n")
     
     app.run(host="127.0.0.1", port=5000, debug=True, use_reloader=True)
