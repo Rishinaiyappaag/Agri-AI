@@ -1,91 +1,76 @@
-# 🌱 Agri AI — Smart Farming with Artificial Intelligence
+# 🌱 Agri AI — Smart Farming Powered by AI
 
-Agri AI is an **AI-powered smart agriculture platform** that helps farmers make data-driven decisions using machine learning.
-The system provides intelligent tools for **crop recommendation, fertilizer guidance, pesticide detection, plant disease recognition, and crop yield prediction**.
-
-The platform integrates **machine learning, deep learning, and federated learning** to deliver accurate agricultural insights while maintaining data privacy.
+**Agri AI** is an AI-powered smart agriculture platform that empowers farmers with data-driven insights using machine learning and deep learning. The system delivers intelligent tools for crop recommendation, fertilizer guidance, pesticide identification, plant disease detection, and crop yield prediction — all through an intuitive web interface.
 
 ---
 
-# 🚀 Features
+## 🚀 Features
 
-### 🌾 Crop Recommendation
-
-Recommends the best crop based on soil nutrients and environmental conditions using machine learning models.
-
-### 🧪 Fertilizer Recommendation
-
-Suggests optimal fertilizers based on soil nutrient composition to improve crop productivity.
-
-### 🐛 Pesticide Recommendation
-
-Identifies pests affecting crops and recommends appropriate pesticide treatments.
-
-### 🍃 Plant Disease Detection
-
-Uses a **CNN-based image classification model** to detect plant diseases from leaf images.
-
-### 📈 Yield Prediction
-
-Predicts expected crop yield using **federated learning models**, allowing collaborative model training while preserving farmer data privacy.
+| Module | Description |
+|---|---|
+| 🌾 **Crop Recommendation** | Recommends the best crop based on soil nutrients and environmental conditions |
+| 🧪 **Fertilizer Recommendation** | Suggests optimal fertilizers based on soil nutrient composition |
+| 🐛 **Pesticide Recommendation** | Identifies pests and recommends appropriate pesticide treatments |
+| 🍃 **Plant Disease Detection** | Detects plant diseases from leaf images using CNN-based image classification |
+| 📈 **Yield Prediction** | Predicts expected crop yield using federated learning for privacy-preserving collaborative training |
 
 ---
 
-# 🧠 AI Technologies Used
+## 🧠 AI Technologies
 
-| Technology          | Purpose                                  |
-| ------------------- | ---------------------------------------- |
-| Machine Learning    | Crop & fertilizer recommendation         |
-| Deep Learning (CNN) | Plant disease detection                  |
-| Federated Learning  | Privacy-preserving yield prediction      |
-| Data Preprocessing  | Feature scaling and encoding             |
-| Model Serialization | Model deployment with pickle and PyTorch |
-
----
-
-# 🏗️ System Architecture
-
-User Input → Flask Web Application → ML/DL Models → Prediction Engine → Result Display
-
-The platform integrates multiple AI models through a **Flask backend** and an intuitive **web interface**.
+| Technology | Purpose |
+|---|---|
+| Machine Learning | Crop & fertilizer recommendation |
+| Deep Learning (CNN) | Plant disease detection & pesticide recommendation |
+| Federated Learning | Privacy-preserving yield prediction |
+| Data Preprocessing | Feature scaling and encoding |
+| Model Serialization | Model deployment with Pickle and PyTorch |
 
 ---
 
-# 🖥️ User Interface
+## 📊 Models
 
-The web interface provides a simple dashboard where farmers can access multiple AI services.
-
-### Available Modules
-
-* Crop Recommendation
-* Fertilizer Recommendation
-* Pesticide Recommendation
-* Plant Disease Detection
-* Yield Prediction
+| Model | Application |
+|---|---|
+| Voting Ensemble | Crop recommendation |
+| Stacked Ensemble ML Model | Fertilizer prediction |
+| CNN — Sequential (multi-class image classification) | Pesticide recommendation |
+| CNN — DenseNet121 | Plant disease detection |
+| XGBoost + Federated Learning | Yield prediction |
 
 ---
 
-# 📂 Project Structure
+## 🏗️ System Architecture
 
 ```
-Agri-AI
+User Input → Flask Web Application → ML / DL Models → Prediction Engine → Result Display
+```
+
+Multiple AI models are integrated through a **Flask backend** and served via an intuitive web interface.
+
+---
+
+## 📂 Project Structure
+
+```
+Agri-AI/
 │
-├── Data
+├── Data/
 │   ├── crop_yield.csv
 │   └── Fertilizer Prediction.csv
 │
-├── federated
+├── federated/
 │   ├── client.py
 │   ├── server.py
 │   ├── federatedmodel.py
-│   ├── train_federated.py
+│   └── train_federated.py
 │
-├── static
-│   ├── css
-│   ├── images
-│   └── user_uploaded
+├── static/
+│   ├── css/
+│   ├── images/
+│   └── user_uploaded/
 │
-├── templates
+├── templates/
 │   ├── index.html
 │   ├── CropRecommendation.html
 │   ├── FertilizerRecommendation.html
@@ -102,119 +87,91 @@ Agri-AI
 
 ---
 
-# ⚙️ Installation Guide
+## ⚙️ Installation
 
-### 1️⃣ Clone the repository
+### 1. Clone the repository
 
-```
+```bash
 git clone https://github.com/Rishinaiyappaag/Agri-AI.git
 cd Agri-AI
 ```
 
-### 2️⃣ Create a virtual environment
+### 2. Create and activate a virtual environment
 
-```
+```bash
 python -m venv env
 ```
 
-Activate environment
-
-Windows:
-
-```
+**Windows:**
+```bash
 env\Scripts\activate
 ```
 
-Mac/Linux:
-
-```
+**Mac / Linux:**
+```bash
 source env/bin/activate
 ```
 
-### 3️⃣ Install dependencies
+### 3. Install dependencies
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Run the application
+### 4. Run the application
 
-```
+```bash
 python app.py
 ```
 
 ---
 
-# 🌍 Application Workflow
+## 🌍 Application Workflow
 
-1. User opens the Agri AI web application.
-2. User selects a service (crop, fertilizer, pesticide, disease, yield).
-3. Input data is provided through the interface.
-4. Machine learning models process the data.
-5. The system returns predictions and recommendations.
-
----
-
-# 🔬 Federated Learning Integration
-
-The yield prediction model is trained using **federated learning**, enabling multiple data sources to collaboratively train models without sharing raw data.
-
-Benefits include:
-
-* Data privacy preservation
-* Improved model generalization
-* Scalable distributed training
+1. Open the Agri AI web application in your browser.
+2. Select a service — crop, fertilizer, pesticide, disease detection, or yield prediction.
+3. Provide the required input data through the form interface.
+4. The backend ML/DL models process your input.
+5. Predictions and recommendations are displayed on screen.
 
 ---
 
-# 📊 Models Used
+## 🔬 Federated Learning — Yield Prediction
 
-| Model                    | Application             |
-| ------------------------ | ----------------------- |
-| Voting Ensemble          | Crop recommendation     |
-| Stacked Ensemble ML Model         | Fertilizer prediction   |
-|   CNN (Sequential) for multi-class image classification  | Pestiside recomendation |
-| CNN(DenseNet121)                     | Plant disease detection |
-|XGBoost + Federated Learning | Yield prediction        |
+The yield prediction module is trained using **federated learning**, enabling multiple distributed data sources to collaboratively train a shared model without exposing raw data.
 
----
-
-# 🌱 Impact
-
-Agri AI aims to support **smart farming and sustainable agriculture** by:
-
-* Increasing crop productivity
-* Reducing fertilizer misuse
-* Detecting plant diseases early
-* Providing data-driven farming decisions
+**Key benefits:**
+- **Data privacy** — raw farm data never leaves the source device
+- **Model generalization** — learns from diverse, distributed datasets
+- **Scalability** — supports distributed training across multiple clients
 
 ---
 
-# 👨‍💻 Developed By
+## 🌱 Impact
 
-**Rishin Aiyappa A G**
+Agri AI aims to support sustainable, smart farming by:
 
-MCA — Artificial Intelligence & Machine Learning
+- Increasing crop productivity through data-driven recommendations
+- Reducing fertilizer and pesticide misuse
+- Enabling early detection of plant diseases
+- Making AI-powered agricultural insights accessible to farmers
+
+---
+
+## 👨‍💻 Developer
+
+**Rishin Aiyappa A G**  
+MCA — Artificial Intelligence & Machine Learning  
 Jain Deemed-to-be University
 
----
-
-# 📬 Connect
-
-LinkedIn:
-https://linkedin.com/
-
-GitHub:
-https://github.com/Rishinaiyappaag
+📧 [GitHub](https://github.com/Rishinaiyappaag) · [LinkedIn](https://linkedin.com/)
 
 ---
 
-# ⭐ If you found this project useful
-
-Give this repository a ⭐ on GitHub and share it with others interested in AI-powered agriculture!
-
----
-
-# 📜 License
+## 📜 License
 
 This project is developed for **educational and research purposes**.
+
+---
+
+> ⭐ If you found this project useful, give the repository a star on GitHub and share it with others interested in AI-powered agriculture!
