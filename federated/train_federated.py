@@ -461,7 +461,7 @@ def run_federated_training(clients: List[OptimizedYieldClient], client_fn: calla
     evaluate_metrics_aggregation_fn=weighted_average,
 )
       
-    
+    1
     print(f"\nConfiguration:")
     print(f"  • Rounds: {Config.NUM_ROUNDS}")
     print(f"  • Clients: {len(clients)}")
