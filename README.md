@@ -171,7 +171,7 @@ Benefits include:
 
 | Model                    | Application             |
 | ------------------------ | ----------------------- |
-| Random Forest            | Crop recommendation     |
+| Voting Ensemble          | Crop recommendation     |
 | Stacked ML Model         | Fertilizer prediction   |
 | CNN(DenseNet121)                     | Plant disease detection |
 |XGBoost + Federated Learning | Yield prediction        |
