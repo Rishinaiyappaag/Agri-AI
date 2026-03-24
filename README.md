@@ -13,6 +13,7 @@
 | 🐛 **Pesticide Recommendation** | Identifies pests and recommends appropriate pesticide treatments |
 | 🍃 **Plant Disease Detection** | Detects plant diseases from leaf images using CNN-based image classification |
 | 📈 **Yield Prediction** | Predicts expected crop yield using federated learning for privacy-preserving collaborative training |
+| 🔐 **User Authentication** | Secure login and registration system with user data stored in MongoDB |
 
 ---
 
@@ -25,6 +26,7 @@
 | Federated Learning | Privacy-preserving yield prediction |
 | Data Preprocessing | Feature scaling and encoding |
 | Model Serialization | Model deployment with Pickle and PyTorch |
+| MongoDB | User authentication & login data storage |
 
 ---
 
@@ -44,6 +46,8 @@
 
 ```
 User Input → Flask Web Application → ML / DL Models → Prediction Engine → Result Display
+                      ↕
+                  MongoDB (User Auth & Session Data)
 ```
 
 Multiple AI models are integrated through a **Flask backend** and served via an intuitive web interface.
@@ -72,6 +76,8 @@ Agri-AI/
 │
 ├── templates/
 │   ├── index.html
+│   ├── login.html
+│   ├── register.html
 │   ├── CropRecommendation.html
 │   ├── FertilizerRecommendation.html
 │   ├── PesticideRecommendation.html
@@ -112,13 +118,25 @@ env\Scripts\activate
 source env/bin/activate
 ```
 
-### 3. Install dependencies
+### 3. Configure MongoDB
+
+Make sure MongoDB is running locally or provide a connection URI. Update the MongoDB connection string in `app.py`:
+
+```python
+from pymongo import MongoClient
+client = MongoClient("mongodb://localhost:27017/")
+db = client["agri_ai"]
+```
+
+> You can also use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a cloud-hosted database.
+
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the application
+### 5. Run the application
 
 ```bash
 python app.py
@@ -129,10 +147,26 @@ python app.py
 ## 🌍 Application Workflow
 
 1. Open the Agri AI web application in your browser.
-2. Select a service — crop, fertilizer, pesticide, disease detection, or yield prediction.
+2. Register or log in — credentials are securely stored in MongoDB.
+3. Select a service — crop, fertilizer, pesticide, disease detection, or yield prediction.
 3. Provide the required input data through the form interface.
 4. The backend ML/DL models process your input.
 5. Predictions and recommendations are displayed on screen.
+
+---
+
+## 🍃 MongoDB — User Authentication
+
+User registration and login data is managed through **MongoDB**, providing a flexible and scalable NoSQL database for storing user credentials and session information.
+
+**What is stored:**
+- User registration details (name, email, hashed password)
+- Login session data
+
+**Why MongoDB:**
+- Schema-flexible — easy to extend user profiles in the future
+- Lightweight integration with Flask via `pymongo`
+- Suitable for both local and cloud deployments (MongoDB Atlas)
 
 ---
 
