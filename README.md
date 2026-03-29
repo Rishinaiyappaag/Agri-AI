@@ -73,15 +73,15 @@ User Input (Form / Image Upload / Camera Capture)
          ↓
   Flask Web Application (app.py)
          ↓
-  ┌──────────────────────────────────────────────────┐
-  │              AI Prediction Engine                  │
-  │                                                    │
-  │  Crop: Stacking Ensemble (XGBoost+RF+ET+KNN)     │
-  │  Fertilizer: ML Model → Ollama Fallback           │
-  │  Pesticide: Image Validation → MobileNetV2        │
-  │  Disease: Image Validation → DenseNet121           │
-  │  Yield: Feature Engineering → XGBoost+Federated Learning              │
-  └──────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │              AI Prediction Engine                          │
+  │                                                            │
+  │  Crop: Stacking Ensemble (XGBoost+RF+ET+KNN)               │
+  │  Fertilizer: ML Model → Ollama Fallback                    │
+  │  Pesticide: Image Validation → MobileNetV2                 │
+  │  Disease: Image Validation → DenseNet121                   │
+  │  Yield: Feature Engineering → XGBoost+Federated Learning   │
+  └────────────────────────────────────────────────────────────┘
          ↓                    ↕
   Result Display         MongoDB
   (with reasoning)     (Users, Predictions,
