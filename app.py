@@ -399,9 +399,9 @@ except Exception:
 @app.route("/crop_prediction", methods=["POST"])
 @login_required
 def crop_prediction():
-    nitrogen     = int(request.form["nitrogen"])
-    phosphorous  = int(request.form["phosphorous"])
-    potassium    = int(request.form["potassium"])
+    nitrogen     = float(request.form["nitrogen"])
+    phosphorous  = float(request.form["phosphorous"])
+    potassium    = float(request.form["potassium"])
     temperature  = float(request.form["temperature"])
     humidity     = float(request.form["humidity"])
     ph           = float(request.form["ph"])

@@ -9,6 +9,11 @@ Collections:
   - disease_predictions
   - yield_predictions
   - crop_recommendations
+
+FIX: All numeric fields now accept both "int" and "double" bsonTypes
+because Python int → MongoDB int32, Python float → MongoDB double.
+The old validator only accepted "double" which silently rejected
+documents where values like nitrogen=50 (int) were passed.
 """
 
 from pymongo import MongoClient, ASCENDING
@@ -29,6 +34,8 @@ def get_db(uri="mongodb://localhost:27017/", db_name="agri_ai_db"):
 # ─────────────────────────────────────────────
 # SCHEMA VALIDATORS  (one per collection)
 # ─────────────────────────────────────────────
+# Using ["int", "double"] for all numeric fields so both
+# Python int and float values are accepted by MongoDB.
 
 USERS_VALIDATOR = {
     "$jsonSchema": {
@@ -52,9 +59,9 @@ FERTILIZER_VALIDATOR = {
                      "crop_type", "recommended_fertilizer", "created_at"],
         "properties": {
             "user_id":                {"bsonType": "objectId"},
-            "nitrogen":               {"bsonType": "double"},
-            "phosphorus":             {"bsonType": "double"},
-            "potassium":              {"bsonType": "double"},
+            "nitrogen":               {"bsonType": ["int", "double"]},
+            "phosphorus":             {"bsonType": ["int", "double"]},
+            "potassium":              {"bsonType": ["int", "double"]},
             "crop_type":              {"bsonType": "string"},
             "recommended_fertilizer": {"bsonType": "string"},
             "created_at":             {"bsonType": "date"},
@@ -72,7 +79,7 @@ PESTICIDE_VALIDATOR = {
             "image_path":            {"bsonType": "string"},
             "predicted_pest":        {"bsonType": "string"},
             "recommended_pesticide": {"bsonType": "string"},
-            "confidence_score":      {"bsonType": "double"},
+            "confidence_score":      {"bsonType": ["int", "double"]},
             "created_at":            {"bsonType": "date"},
         }
     }
@@ -87,7 +94,7 @@ DISEASE_VALIDATOR = {
             "user_id":           {"bsonType": "objectId"},
             "image_path":        {"bsonType": "string"},
             "predicted_disease": {"bsonType": "string"},
-            "confidence_score":  {"bsonType": "double"},
+            "confidence_score":  {"bsonType": ["int", "double"]},
             "created_at":        {"bsonType": "date"},
         }
     }
@@ -101,12 +108,12 @@ YIELD_VALIDATOR = {
                      "model_version", "created_at"],
         "properties": {
             "user_id":         {"bsonType": "objectId"},
-            "area":            {"bsonType": "double"},
-            "annual_rainfall": {"bsonType": "double"},
-            "fertilizer":      {"bsonType": "double"},
-            "pesticide":       {"bsonType": "double"},
-            "crop_year":       {"bsonType": "int"},
-            "predicted_yield": {"bsonType": "double"},
+            "area":            {"bsonType": ["int", "double"]},
+            "annual_rainfall": {"bsonType": ["int", "double"]},
+            "fertilizer":      {"bsonType": ["int", "double"]},
+            "pesticide":       {"bsonType": ["int", "double"]},
+            "crop_year":       {"bsonType": ["int", "double"]},
+            "predicted_yield": {"bsonType": ["int", "double"]},
             "model_version":   {"bsonType": "string"},
             "created_at":      {"bsonType": "date"},
         }
@@ -121,13 +128,13 @@ CROP_VALIDATOR = {
                      "recommended_crop", "created_at"],
         "properties": {
             "user_id":          {"bsonType": "objectId"},
-            "nitrogen":         {"bsonType": "double"},
-            "phosphorus":       {"bsonType": "double"},
-            "potassium":        {"bsonType": "double"},
-            "soil_ph":          {"bsonType": "double"},
-            "rainfall":         {"bsonType": "double"},
-            "temperature":      {"bsonType": "double"},
-            "humidity":         {"bsonType": "double"},
+            "nitrogen":         {"bsonType": ["int", "double"]},
+            "phosphorus":       {"bsonType": ["int", "double"]},
+            "potassium":        {"bsonType": ["int", "double"]},
+            "soil_ph":          {"bsonType": ["int", "double"]},
+            "rainfall":         {"bsonType": ["int", "double"]},
+            "temperature":      {"bsonType": ["int", "double"]},
+            "humidity":         {"bsonType": ["int", "double"]},
             "recommended_crop": {"bsonType": "string"},
             "created_at":       {"bsonType": "date"},
         }
@@ -235,37 +242,37 @@ def init_db(uri="mongodb://localhost:27017/", db_name="agri_ai_db"):
 
 def new_fertilizer_rec(user_id, nitrogen, phosphorus, potassium,
                        crop_type, recommended_fertilizer):
-    """Fertilizer_Recommendations document — matches ERD exactly."""
+    """Fertilizer_Recommendations document."""
     return {
         "user_id":                user_id,
         "nitrogen":               float(nitrogen),
         "phosphorus":             float(phosphorus),
         "potassium":              float(potassium),
-        "crop_type":              crop_type,
-        "recommended_fertilizer": recommended_fertilizer,
+        "crop_type":              str(crop_type),
+        "recommended_fertilizer": str(recommended_fertilizer),
         "created_at":             datetime.utcnow(),
     }
 
 
 def new_pesticide_rec(user_id, image_path, predicted_pest,
                       recommended_pesticide, confidence_score):
-    """Pesticide_Recommendations document — matches ERD exactly."""
+    """Pesticide_Recommendations document."""
     return {
         "user_id":               user_id,
-        "image_path":            image_path,
-        "predicted_pest":        predicted_pest,
-        "recommended_pesticide": recommended_pesticide,
+        "image_path":            str(image_path),
+        "predicted_pest":        str(predicted_pest),
+        "recommended_pesticide": str(recommended_pesticide),
         "confidence_score":      float(confidence_score),
         "created_at":            datetime.utcnow(),
     }
 
 
 def new_disease_prediction(user_id, image_path, predicted_disease, confidence_score):
-    """Disease_Predictions document — matches ERD exactly."""
+    """Disease_Predictions document."""
     return {
         "user_id":           user_id,
-        "image_path":        image_path,
-        "predicted_disease": predicted_disease,
+        "image_path":        str(image_path),
+        "predicted_disease": str(predicted_disease),
         "confidence_score":  float(confidence_score),
         "created_at":        datetime.utcnow(),
     }
@@ -273,7 +280,7 @@ def new_disease_prediction(user_id, image_path, predicted_disease, confidence_sc
 
 def new_yield_prediction(user_id, area, annual_rainfall, fertilizer,
                          pesticide, crop_year, predicted_yield, model_version):
-    """Yield_Predictions document — matches ERD exactly."""
+    """Yield_Predictions document."""
     return {
         "user_id":         user_id,
         "area":            float(area),
@@ -282,7 +289,7 @@ def new_yield_prediction(user_id, area, annual_rainfall, fertilizer,
         "pesticide":       float(pesticide),
         "crop_year":       int(crop_year),
         "predicted_yield": float(predicted_yield),
-        "model_version":   model_version,
+        "model_version":   str(model_version),
         "created_at":      datetime.utcnow(),
     }
 
@@ -290,7 +297,7 @@ def new_yield_prediction(user_id, area, annual_rainfall, fertilizer,
 def new_crop_recommendation(user_id, nitrogen, phosphorus, potassium,
                             soil_ph, rainfall, temperature, humidity,
                             recommended_crop):
-    """Crop_Recommendations document — matches ERD exactly."""
+    """Crop_Recommendations document."""
     return {
         "user_id":          user_id,
         "nitrogen":         float(nitrogen),
@@ -300,7 +307,7 @@ def new_crop_recommendation(user_id, nitrogen, phosphorus, potassium,
         "rainfall":         float(rainfall),
         "temperature":      float(temperature),
         "humidity":         float(humidity),
-        "recommended_crop": recommended_crop,
+        "recommended_crop": str(recommended_crop),
         "created_at":       datetime.utcnow(),
     }
 
