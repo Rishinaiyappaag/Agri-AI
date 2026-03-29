@@ -9,6 +9,7 @@
 <li><a href="/yield">Yield Prediction</a></li>
 <li><a href="/logout" style="color: #d32f2f; font-weight: 600;">Logout</a></li>
 {% endblock %}
+
 {% block body %}
 
 <section style="
@@ -16,7 +17,6 @@
     background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
     padding: 80px 0;
 ">
-
   <div class="container">
 
     <!-- Heading -->
@@ -36,13 +36,12 @@
         font-size:18px;
         margin-bottom:40px;
     ">
-      Upload an image of the pest in your estate
-      and get the right pesticide recommendation
+      Upload an image of the pest or use your camera for real-time detection
     </p>
 
     <!-- Upload Card -->
     <div style="
-        max-width:420px;
+        max-width:500px;
         margin:auto;
         background:#ffffff;
         padding:35px;
@@ -51,26 +50,63 @@
         text-align:center;
     ">
 
-      <form action="/predict" method="POST" enctype="multipart/form-data">
-
-        <!-- File Input -->
-        <div style="
-            border:2px dashed #81c784;
-            padding:25px;
-            border-radius:15px;
-            margin-bottom:25px;
+      <!-- Tab Buttons -->
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:25px;">
+        <button onclick="showTab('upload')" id="tab-upload" style="
+            padding:10px 25px;
+            border-radius:20px;
+            border:2px solid #1b5e20;
+            background:#1b5e20;
+            color:white;
+            font-size:15px;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.3s;
         ">
-          <input type="file" name="image" accept="image/png, image/jpeg" required style="
-                    font-size:15px;
-                    color:#1b5e20;
-                 ">
-          <p style="margin-top:10px; color:#2e7d32;">
-            JPG or PNG • Clear pest image
-          </p>
-        </div>
+          📁 Upload Image
+        </button>
+        <button onclick="showTab('camera')" id="tab-camera" style="
+            padding:10px 25px;
+            border-radius:20px;
+            border:2px solid #1b5e20;
+            background:white;
+            color:#1b5e20;
+            font-size:15px;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.3s;
+        ">
+          📷 Use Camera
+        </button>
+      </div>
 
-        <!-- Submit Button -->
-        <button type="submit" style="
+      <!-- ========== UPLOAD TAB ========== -->
+      <div id="upload-section">
+        <form action="/predict" method="POST" enctype="multipart/form-data">
+
+          <div style="
+              border:2px dashed #81c784;
+              padding:25px;
+              border-radius:15px;
+              margin-bottom:20px;
+              background:#f9fff9;
+          ">
+            <img id="preview-img" src="" alt="" style="
+                display:none;
+                max-width:100%;
+                max-height:200px;
+                border-radius:12px;
+                margin-bottom:15px;
+                border:2px solid #e0f2f1;
+            ">
+            <input type="file" name="image" id="file-input" accept="image/png, image/jpeg" required
+              onchange="previewImage(this)" style="font-size:15px; color:#1b5e20;">
+            <p style="margin-top:10px; color:#2e7d32;">
+              JPG or PNG • Clear pest image
+            </p>
+          </div>
+
+          <button type="submit" style="
               background:#1b5e20;
               color:white;
               font-size:18px;
@@ -78,15 +114,214 @@
               padding:12px 45px;
               border:none;
               border-radius:30px;
+              cursor:pointer;
               transition:0.3s;
-          ">
-          🧪 Recommend Pesticide
-        </button>
+            " onmouseover="this.style.background='#2e7d32'" onmouseout="this.style.background='#1b5e20'">
+            🧪 Recommend Pesticide
+          </button>
+        </form>
+      </div>
 
-      </form>
+      <!-- ========== CAMERA TAB ========== -->
+      <div id="camera-section" style="display:none;">
+
+        <div style="
+            border:2px solid #81c784;
+            border-radius:15px;
+            overflow:hidden;
+            margin-bottom:15px;
+            background:#000;
+            position:relative;
+        ">
+          <video id="camera-video" autoplay playsinline style="
+              width:100%;
+              max-height:300px;
+              object-fit:cover;
+              display:block;
+          "></video>
+          <canvas id="camera-canvas" style="display:none;"></canvas>
+          <img id="captured-img" src="" alt="" style="
+              display:none;
+              width:100%;
+              max-height:300px;
+              object-fit:contain;
+          ">
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button onclick="startCamera()" id="btn-start-cam" style="
+              background:#1565c0;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+          ">📷 Start Camera</button>
+
+          <button onclick="capturePhoto()" id="btn-capture" style="
+              display:none;
+              background:#2e7d32;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+          ">📸 Capture Photo</button>
+
+          <button onclick="retakePhoto()" id="btn-retake" style="
+              display:none;
+              background:#f57c00;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+          ">🔄 Retake</button>
+
+          <button onclick="submitCameraImage()" id="btn-predict-cam" style="
+              display:none;
+              background:#1b5e20;
+              color:white;
+              font-size:18px;
+              font-weight:600;
+              padding:10px 30px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+          ">🧪 Recommend Pesticide</button>
+        </div>
+
+        <p id="camera-status" style="margin-top:15px; font-size:14px; color:#666;"></p>
+      </div>
 
     </div>
   </div>
 </section>
+
+<script>
+  let cameraStream = null;
+
+  function showTab(tab) {
+    const uploadSection = document.getElementById('upload-section');
+    const cameraSection = document.getElementById('camera-section');
+    const tabUpload = document.getElementById('tab-upload');
+    const tabCamera = document.getElementById('tab-camera');
+
+    if (tab === 'upload') {
+      uploadSection.style.display = 'block';
+      cameraSection.style.display = 'none';
+      tabUpload.style.background = '#1b5e20';
+      tabUpload.style.color = 'white';
+      tabCamera.style.background = 'white';
+      tabCamera.style.color = '#1b5e20';
+      stopCamera();
+    } else {
+      uploadSection.style.display = 'none';
+      cameraSection.style.display = 'block';
+      tabCamera.style.background = '#1b5e20';
+      tabCamera.style.color = 'white';
+      tabUpload.style.background = 'white';
+      tabUpload.style.color = '#1b5e20';
+    }
+  }
+
+  function previewImage(input) {
+    const preview = document.getElementById('preview-img');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  async function startCamera() {
+    const video = document.getElementById('camera-video');
+    const status = document.getElementById('camera-status');
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      video.srcObject = cameraStream;
+      video.style.display = 'block';
+      document.getElementById('captured-img').style.display = 'none';
+      document.getElementById('btn-start-cam').style.display = 'none';
+      document.getElementById('btn-capture').style.display = 'inline-block';
+      document.getElementById('btn-retake').style.display = 'none';
+      document.getElementById('btn-predict-cam').style.display = 'none';
+      status.textContent = 'Camera is active. Point at the pest and capture.';
+      status.style.color = '#2e7d32';
+    } catch (err) {
+      status.textContent = 'Could not access camera. Please allow camera permission or use Upload.';
+      status.style.color = '#c62828';
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const capturedImg = document.getElementById('captured-img');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    capturedImg.src = canvas.toDataURL('image/jpeg', 0.9);
+    capturedImg.style.display = 'block';
+    video.style.display = 'none';
+    stopCamera();
+    document.getElementById('btn-capture').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'inline-block';
+    document.getElementById('btn-predict-cam').style.display = 'inline-block';
+    document.getElementById('camera-status').textContent = 'Photo captured! Click Recommend or Retake.';
+  }
+
+  function retakePhoto() {
+    document.getElementById('captured-img').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'none';
+    document.getElementById('btn-predict-cam').style.display = 'none';
+    startCamera();
+  }
+
+  function submitCameraImage() {
+    const canvas = document.getElementById('camera-canvas');
+    const status = document.getElementById('camera-status');
+    status.textContent = 'Analyzing image...';
+    status.style.color = '#1565c0';
+
+    canvas.toBlob(function (blob) {
+      const formData = new FormData();
+      formData.append('image', blob, 'camera_capture.jpg');
+
+      fetch('/predict-camera', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.text())
+        .then(html => {
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(err => {
+          status.textContent = 'Error processing image. Please try again.';
+          status.style.color = '#c62828';
+        });
+    }, 'image/jpeg', 0.9);
+  }
+</script>
 
 {% endblock %}

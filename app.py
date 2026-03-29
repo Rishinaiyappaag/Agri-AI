@@ -1,6 +1,8 @@
 """
 app.py - AGRI AI with Authentication System
 Complete app with login, signup, and MongoDB integration
++ Unknown image rejection for Plant Disease & Pesticide
++ Camera support for both modules
 """
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
@@ -10,6 +12,7 @@ import numpy as np
 import pickle
 import requests
 import os
+import json
 import pandas as pd
 import warnings
 from dotenv import load_dotenv
@@ -18,6 +21,8 @@ from database import init_db, new_fertilizer_rec, new_pesticide_rec, new_disease
 from functools import wraps
 from datetime import datetime
 from bson.objectid import ObjectId
+from PIL import Image
+import io
 
 warnings.filterwarnings('ignore')
 load_dotenv()
@@ -30,10 +35,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-this')
 app.config['MONGO_URI'] = os.getenv('MONGO_URI', 'mongodb://localhost:27017/agri_ai_db')
 
-# Initialize MongoDB
 mongo = PyMongo(app)
 
-# Initialize DB collections and indexes from ERD schema
 with app.app_context():
     init_db(db_name="agri_ai_db")
 
@@ -57,13 +60,32 @@ print("\n" + "="*70)
 print("LOADING MODELS - AGRI AI SYSTEM")
 print("="*70)
 
+# ─── Version diagnostics ───
+print(f"\n  NumPy version: {np.__version__}")
+try:
+    import tensorflow as tf
+    print(f"  TensorFlow version: {tf.__version__}")
+    TF_AVAILABLE = True
+except Exception as e:
+    print(f"  ⚠️  TensorFlow import FAILED: {e}")
+    print(f"  ╔══════════════════════════════════════════════════════════╗")
+    print(f"  ║  FIX: Run these commands in your terminal:              ║")
+    print(f"  ║  pip install numpy==1.24.3 --force-reinstall            ║")
+    print(f"  ║  pip install tensorflow==2.15.0 --force-reinstall       ║")
+    print(f"  ║  pip install ml-dtypes==0.2.0 --force-reinstall         ║")
+    print(f"  ╚══════════════════════════════════════════════════════════╝")
+    TF_AVAILABLE = False
+    tf = None
+
+print()
+
 # ─── Crop Recommendation Model ───
 try:
     with open("Crop_Recommendation.pkl", "rb") as f:
         crop_recommendation_model = pickle.load(f)
     print("✓ Crop Recommendation Model loaded")
 except Exception as e:
-    print(f"⚠️  Crop Recommendation Model not found")
+    print(f"⚠️  Crop Recommendation Model not found: {e}")
     crop_recommendation_model = None
 
 # ─── Fertilizer Model (8 Features) ───
@@ -95,42 +117,77 @@ except Exception as e:
 try:
     with open("federated_yield_model.pth", "rb") as f:
         yield_model_package = pickle.load(f)
-
     yield_model     = yield_model_package["model"]
     yield_scaler    = yield_model_package["scaler"]
     feature_cols    = yield_model_package["feature_cols"]
     metrics         = yield_model_package["metrics"]
-
     print(f"✓ Yield Model (XGBoost Federated Learning) loaded")
     print(f"  Features: {len(feature_cols)} | Test R²: {metrics.get('test_r2', 0):.6f}")
     YIELD_MODEL_AVAILABLE = True
 except Exception as e:
-    print(f"⚠️  Yield Model not found")
+    print(f"⚠️  Yield Model not found: {e}")
     yield_model  = None
     yield_scaler = None
     feature_cols = None
     metrics      = None
     YIELD_MODEL_AVAILABLE = False
 
-# ─── Pest Model ───
-try:
-    import tensorflow as tf
-    from tensorflow.keras.preprocessing import image as tf_image
-    pest_model = tf.keras.models.load_model("Trained_Model.h5")
-    print("✓ Pest Model loaded")
-except Exception as e:
-    print(f"⚠️  Pest Model not found")
-    pest_model = None
+# ─── Pest Model (SEPARATED loading — TF, model file, predictor) ───
+pest_model = None
+tf_image = None
+PEST_MODEL_AVAILABLE = False
 
-# ─── Plant Disease Model ───
+if TF_AVAILABLE:
+    # Step 1: Import keras image helper
+    try:
+        from tensorflow.keras.preprocessing import image as tf_image
+    except Exception as e:
+        print(f"⚠️  keras.preprocessing.image import failed: {e}")
+        tf_image = None
+
+    # Step 2: Load the .h5 model file (try multiple case variants)
+    pest_model_candidates = [
+        "Trained_model.h5",
+        "Trained_Model.h5",
+        "trained_model.h5",
+        "Trained_model.H5",
+    ]
+    for model_file in pest_model_candidates:
+        if os.path.exists(model_file):
+            try:
+                pest_model = tf.keras.models.load_model(model_file)
+                print(f"✓ Pest Model loaded from: {model_file}")
+                break
+            except Exception as e:
+                print(f"⚠️  Failed to load {model_file}: {e}")
+
+    if pest_model is None:
+        print(f"⚠️  Pest Model .h5 file not found! Looked for: {pest_model_candidates}")
+        print(f"   Make sure the file exists in: {os.getcwd()}")
+
+    # Step 3: Import pest_predictor module
+    if pest_model is not None:
+        try:
+            from pest_predictor import predict_pest, predict_pest_from_pil
+            PEST_MODEL_AVAILABLE = True
+            print("✓ Pest Predictor module loaded (with unknown detection + camera)")
+        except Exception as e:
+            print(f"⚠️  pest_predictor.py import failed: {e}")
+            print(f"   Make sure pest_predictor.py exists in: {os.getcwd()}")
+            PEST_MODEL_AVAILABLE = False
+else:
+    print("⚠️  Pest Model skipped — TensorFlow not available")
+
+# ─── Plant Disease Model (with validation) ───
 try:
     from plant_disease_predictor import load_model as load_plant_model
     from plant_disease_predictor import predict as predict_plant_disease
+    from plant_disease_predictor import predict_from_pil as predict_plant_from_pil
     PLANT_MODEL_PATH = "plant_disease_densenet.pth"
     plant_model, plant_classes = load_plant_model(PLANT_MODEL_PATH)
-    print("✓ Plant Disease Model loaded")
+    print("✓ Plant Disease Model loaded (with unknown detection + camera)")
 except Exception as e:
-    print(f"⚠️  Plant Disease Model not found")
+    print(f"⚠️  Plant Disease Model not found: {e}")
     plant_model   = None
     plant_classes = None
 
@@ -172,13 +229,7 @@ FERTILIZER_DATABASE = {
         "rate": "150-200 kg/hectare",
         "frequency": "Once during basal application at planting",
         "reason": "High phosphorous (35%) and nitrogen (14%) content promotes strong flowering and fruiting.",
-        "tips": [
-            "Mix thoroughly with soil before planting",
-            "Apply uniformly across the field",
-            "Can be applied with or without irrigation",
-            "Best results when applied in slightly moist soil",
-            "Monitor crop for nutrient deficiency symptoms"
-        ],
+        "tips": ["Mix thoroughly with soil before planting", "Apply uniformly across the field", "Can be applied with or without irrigation", "Best results when applied in slightly moist soil", "Monitor crop for nutrient deficiency symptoms"],
         "precautions": "Not suitable for highly acidic soils. Avoid application in dry conditions."
     },
     "10-52-34": {
@@ -186,13 +237,7 @@ FERTILIZER_DATABASE = {
         "rate": "200-250 kg/hectare",
         "frequency": "Basal application + Split application after 4-6 weeks",
         "reason": "Balanced NPK with higher P and K. Excellent for root crops and tubers.",
-        "tips": [
-            "Apply as basal dose at planting",
-            "Follow up with split application during growth",
-            "Ensure soil moisture before application",
-            "Mix with other fertilizers for better coverage",
-            "Water field lightly after application"
-        ],
+        "tips": ["Apply as basal dose at planting", "Follow up with split application during growth", "Ensure soil moisture before application", "Mix with other fertilizers for better coverage", "Water field lightly after application"],
         "precautions": "Suitable for most soils. May cause chloride accumulation in coastal areas."
     },
     "20-20-20": {
@@ -200,13 +245,7 @@ FERTILIZER_DATABASE = {
         "rate": "300-400 kg/hectare",
         "frequency": "Split application in 3 doses",
         "reason": "Equal nitrogen, phosphorous, and potassium for all crop growth stages.",
-        "tips": [
-            "Divide total dose into 3 equal parts",
-            "Apply first dose at planting (basal)",
-            "Apply second dose at 30 days growth",
-            "Apply third dose at 60 days or flowering stage",
-            "Ensure irrigation before and after each application"
-        ],
+        "tips": ["Divide total dose into 3 equal parts", "Apply first dose at planting (basal)", "Apply second dose at 30 days growth", "Apply third dose at 60 days or flowering stage", "Ensure irrigation before and after each application"],
         "precautions": "Suitable for all crops and soils. May require micronutrient supplementation."
     },
     "46-0-0": {
@@ -214,13 +253,7 @@ FERTILIZER_DATABASE = {
         "rate": "100-150 kg/hectare",
         "frequency": "Split application in 2-3 doses at 4-week intervals",
         "reason": "Pure nitrogen source for rapid vegetative growth and green foliage.",
-        "tips": [
-            "Always apply in split doses to reduce loss",
-            "First dose at active growth stage (20-30 days)",
-            "Second dose at 4-6 week intervals",
-            "Dissolve in water for even distribution",
-            "Apply in moist soil for better uptake"
-        ],
+        "tips": ["Always apply in split doses to reduce loss", "First dose at active growth stage (20-30 days)", "Second dose at 4-6 week intervals", "Dissolve in water for even distribution", "Apply in moist soil for better uptake"],
         "precautions": "Risk of nitrate leaching in sandy soils. Do not exceed 150 kg/ha."
     },
     "0-46-0": {
@@ -228,13 +261,7 @@ FERTILIZER_DATABASE = {
         "rate": "200-250 kg/hectare",
         "frequency": "Once as basal application before or at planting",
         "reason": "Pure phosphorous source for root development and flowering.",
-        "tips": [
-            "Apply as basal dose mixed with soil",
-            "Mix evenly to ensure uniform distribution",
-            "Suitable for acidic and neutral soils",
-            "Contains sulfur beneficial for cruciferous crops",
-            "Can be combined with manure for better results"
-        ],
+        "tips": ["Apply as basal dose mixed with soil", "Mix evenly to ensure uniform distribution", "Suitable for acidic and neutral soils", "Contains sulfur beneficial for cruciferous crops", "Can be combined with manure for better results"],
         "precautions": "May increase soil acidity slightly. Not recommended for alkaline soils."
     }
 }
@@ -244,7 +271,6 @@ FERTILIZER_DATABASE = {
 # ╚════════════════════════════════════════════════════════════════════╝
 
 def login_required(f):
-    """Decorator to check if user is logged in"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -254,7 +280,6 @@ def login_required(f):
 
 
 def get_current_user_id():
-    """Return current logged-in user's ObjectId"""
     return ObjectId(session['user_id'])
 
 
@@ -264,11 +289,9 @@ def get_current_user_id():
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
-    """Login and Signup page"""
     if request.method == "POST":
         action = request.form.get("action")
 
-        # ─── SIGN UP ───
         if action == "signup":
             full_name        = request.form.get("signup_name", "").strip()
             email            = request.form.get("signup_email", "").strip()
@@ -276,67 +299,42 @@ def login_page():
             confirm_password = request.form.get("signup_confirm", "").strip()
 
             if not full_name or not email or not password:
-                return render_template("login.html",
-                                       error="❌ All fields are required!",
-                                       active_tab="signup")
-
+                return render_template("login.html", error="❌ All fields are required!", active_tab="signup")
             if len(password) < 6:
-                return render_template("login.html",
-                                       error="❌ Password must be at least 6 characters!",
-                                       active_tab="signup")
-
+                return render_template("login.html", error="❌ Password must be at least 6 characters!", active_tab="signup")
             if password != confirm_password:
-                return render_template("login.html",
-                                       error="❌ Passwords do not match!",
-                                       active_tab="signup")
-
+                return render_template("login.html", error="❌ Passwords do not match!", active_tab="signup")
             if "@" not in email:
-                return render_template("login.html",
-                                       error="❌ Invalid email address!",
-                                       active_tab="signup")
+                return render_template("login.html", error="❌ Invalid email address!", active_tab="signup")
 
             success, message, user_id = create_user(mongo, full_name, email, password)
-
             if success:
-                return render_template("login.html",
-                                       success=message,
-                                       active_tab="signin")
+                return render_template("login.html", success=message, active_tab="signin")
             else:
-                return render_template("login.html",
-                                       error=message,
-                                       active_tab="signup")
+                return render_template("login.html", error=message, active_tab="signup")
 
-        # ─── SIGN IN ───
         elif action == "signin":
             email    = request.form.get("signin_email", "").strip()
             password = request.form.get("signin_password", "").strip()
 
             if not email or not password:
-                return render_template("login.html",
-                                       error="❌ Email and password are required!",
-                                       active_tab="signin")
+                return render_template("login.html", error="❌ Email and password are required!", active_tab="signin")
 
             success, message, user = verify_login(mongo, email, password)
-
             if success:
-                # Set session — use "name" field (matches ERD)
                 session['user_id']    = str(user['_id'])
-                session['user_name']  = user['name']        # ✅ ERD field: name
+                session['user_name']  = user['name']
                 session['user_email'] = user['email']
                 session['user_role']  = user['role']
-
                 return redirect(url_for('index'))
             else:
-                return render_template("login.html",
-                                       error=message,
-                                       active_tab="signin")
+                return render_template("login.html", error=message, active_tab="signin")
 
     return render_template("login.html", active_tab="signin")
 
 
 @app.route("/logout")
 def logout():
-    """Logout user"""
     session.clear()
     return redirect(url_for('login_page'))
 
@@ -351,12 +349,10 @@ def logout():
 def index():
     return render_template("index.html")
 
-
 @app.route("/CropRecommendation.html")
 @login_required
 def crop():
     return render_template("CropRecommendation.html")
-
 
 @app.route("/FertilizerRecommendation.html")
 @login_required
@@ -367,50 +363,42 @@ def fertilizer_page():
     except Exception:
         soils_list = soils
         crops_list = crops
-
-    return render_template(
-        "FertilizerRecommendation.html",
-        crops=crops_list,
-        soils=soils_list,
-        prediction=None,
-        form_data=None,
-        error=None
-    )
-
+    return render_template("FertilizerRecommendation.html", crops=crops_list, soils=soils_list, prediction=None, form_data=None, error=None)
 
 @app.route("/PesticideRecommendation.html")
 @login_required
 def pesticide():
     return render_template("PesticideRecommendation.html")
 
-
 @app.route("/PlantDisease.html")
 @login_required
 def plant_disease_page():
     return render_template("PlantDisease.html")
 
-
 @app.route("/yield")
 @app.route("/YieldPrediction.html")
 @login_required
 def yield_page():
-    return render_template(
-        "YieldPrediction.html",
-        crops=crops,
-        prediction=None,
-        form_data=None,
-        error=None
-    )
+    return render_template("YieldPrediction.html", crops=crops, prediction=None, form_data=None, error=None)
 
 
 # ╔════════════════════════════════════════════════════════════════════╗
 # ║                    CROP PREDICTION                                ║
 # ╚════════════════════════════════════════════════════════════════════╝
 
+# Load crop statistics for result page reasoning
+CROP_STATS = {}
+try:
+    with open("crop_stats.json", "r") as f:
+        CROP_STATS = json.load(f)
+    print("✓ Crop statistics loaded for result reasoning")
+except Exception:
+    print("⚠️  crop_stats.json not found — run train_crop_recommendation.py first")
+
+
 @app.route("/crop_prediction", methods=["POST"])
 @login_required
 def crop_prediction():
-    """Crop recommendation + save to crop_recommendations collection"""
     nitrogen     = int(request.form["nitrogen"])
     phosphorous  = int(request.form["phosphorous"])
     potassium    = int(request.form["potassium"])
@@ -419,23 +407,23 @@ def crop_prediction():
     ph           = float(request.form["ph"])
     rainfall     = float(request.form["rainfall"])
 
-    data = np.array([[nitrogen, phosphorous, potassium,
-                      temperature, humidity, ph, rainfall]])
-
+    data = np.array([[nitrogen, phosphorous, potassium, temperature, humidity, ph, rainfall]])
     prediction = crop_recommendation_model.predict(data)[0]
 
-    # ── Save to MongoDB (Crop_Recommendations) ──
+    # Build reasoning from crop stats
+    input_values = {
+        "N": nitrogen, "P": phosphorous, "K": potassium,
+        "temperature": temperature, "humidity": humidity,
+        "ph": ph, "rainfall": rainfall
+    }
+
+    crop_info = CROP_STATS.get(prediction, {})
+
     try:
         doc = new_crop_recommendation(
-            user_id          = get_current_user_id(),
-            nitrogen         = nitrogen,
-            phosphorus       = phosphorous,
-            potassium        = potassium,
-            soil_ph          = ph,
-            rainfall         = rainfall,
-            temperature      = temperature,
-            humidity         = humidity,
-            recommended_crop = prediction
+            user_id=get_current_user_id(), nitrogen=nitrogen, phosphorus=phosphorous,
+            potassium=potassium, soil_ph=ph, rainfall=rainfall,
+            temperature=temperature, humidity=humidity, recommended_crop=prediction
         )
         mongo.db.crop_recommendations.insert_one(doc)
     except Exception as e:
@@ -444,7 +432,9 @@ def crop_prediction():
     return render_template(
         "crop-result.html",
         prediction=prediction,
-        pred="img/crop/" + prediction + ".jpg"
+        pred="img/crop/" + prediction + ".jpg",
+        input_values=input_values,
+        crop_info=crop_info
     )
 
 
@@ -453,18 +443,8 @@ def crop_prediction():
 # ╚════════════════════════════════════════════════════════════════════╝
 
 def call_ollama(prompt):
-    """Call Ollama API to get recommendation"""
     try:
-        response = requests.post(
-            OLLAMA_API_URL,
-            json={
-                "model":       OLLAMA_MODEL,
-                "prompt":      prompt,
-                "stream":      False,
-                "temperature": 0.7,
-            },
-            timeout=60
-        )
+        response = requests.post(OLLAMA_API_URL, json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False, "temperature": 0.7}, timeout=60)
         if response.status_code == 200:
             return response.json().get('response', '').strip()
         return None
@@ -473,38 +453,20 @@ def call_ollama(prompt):
 
 
 def format_ml_fertilizer_recommendation(fertilizer_code):
-    """Format ML model output into detailed recommendation"""
     if fertilizer_code in FERTILIZER_DATABASE:
         info = FERTILIZER_DATABASE[fertilizer_code]
-        rec  = f"""RECOMMENDED FERTILIZER (Primary): {info['name']} ({fertilizer_code})
-
-APPLICATION RATE: {info['rate']}
-
-APPLICATION FREQUENCY: {info['frequency']}
-
-WHY THIS FERTILIZER:
-{info['reason']}
-
-APPLICATION TIPS:
-"""
+        rec = f"RECOMMENDED FERTILIZER (Primary): {info['name']} ({fertilizer_code})\n\nAPPLICATION RATE: {info['rate']}\n\nAPPLICATION FREQUENCY: {info['frequency']}\n\nWHY THIS FERTILIZER:\n{info['reason']}\n\nAPPLICATION TIPS:\n"
         for i, tip in enumerate(info['tips'], 1):
             rec += f"{i}. {tip}\n"
         rec += f"\nPRECAUTIONS: {info['precautions']}"
         return rec
     else:
-        return f"""RECOMMENDED FERTILIZER (Primary): {fertilizer_code}
-
-This is a specialized fertilizer blend recommended by our ML model.
-
-APPLICATION RATE: Please consult with a local agricultural expert for the exact rate.
-
-FREQUENCY: Typically applied as basal dose + split application during growth period."""
+        return f"RECOMMENDED FERTILIZER (Primary): {fertilizer_code}\n\nThis is a specialized fertilizer blend recommended by our ML model.\n\nAPPLICATION RATE: Please consult with a local agricultural expert for the exact rate.\n\nFREQUENCY: Typically applied as basal dose + split application during growth period."
 
 
 @app.route("/fertilizer", methods=["POST"])
 @login_required
 def recommend_fertilizer():
-    """Recommend fertilizers + save to fertilizer_recommendations collection"""
     try:
         soils_list = soil_encoder.classes_ if soil_encoder else soils
         crops_list = crop_encoder.classes_ if crop_encoder else crops
@@ -523,110 +485,59 @@ def recommend_fertilizer():
         potassium    = float(request.form.get("potassium", 50))
 
         if not soil or not cropname:
-            return render_template(
-                "FertilizerRecommendation.html",
-                prediction=None, crops=crops_list, soils=soils_list,
-                form_data=request.form,
-                error="❌ Please select both Soil and Crop!"
-            )
+            return render_template("FertilizerRecommendation.html", prediction=None, crops=crops_list, soils=soils_list, form_data=request.form, error="❌ Please select both Soil and Crop!")
 
         recommended_fertilizer = None
-        fertilizer_code        = "unknown"
-        method_used            = ""
+        fertilizer_code = "unknown"
+        method_used = ""
 
-        # ── ML path ──
         if FERTILIZER_ML_AVAILABLE and ENCODERS_AVAILABLE:
             try:
                 soil_encoded = soil_encoder.transform([soil])[0]
                 crop_encoded = crop_encoder.transform([cropname])[0]
-
-                input_data = np.array([[
-                    temperature, humidity, moisture,
-                    soil_encoded, crop_encoded,
-                    nitrogen, phosphorous, potassium
-                ]], dtype=np.float32)
-
+                input_data = np.array([[temperature, humidity, moisture, soil_encoded, crop_encoded, nitrogen, phosphorous, potassium]], dtype=np.float32)
                 fertilizer_prediction = fertilizer_model.predict(input_data)[0]
-                fertilizer_code = str(
-                    fertilizer_encoder.inverse_transform([int(fertilizer_prediction)])[0]
-                ).strip()
-
+                fertilizer_code = str(fertilizer_encoder.inverse_transform([int(fertilizer_prediction)])[0]).strip()
                 recommended_fertilizer = format_ml_fertilizer_recommendation(fertilizer_code)
 
                 alternatives = []
                 for code, info in list(FERTILIZER_DATABASE.items())[:2]:
                     if code != fertilizer_code:
-                        alt  = f"\n\n---\n\nALTERNATIVE OPTION {len(alternatives)+1}: "
-                        alt += f"{info['name']} ({code})\n\n"
-                        alt += f"APPLICATION RATE: {info['rate']}\n"
-                        alt += f"REASON: {info['reason']}\n"
-                        alt += "APPLICATION TIPS:\n"
+                        alt = f"\n\n---\n\nALTERNATIVE OPTION {len(alternatives)+1}: {info['name']} ({code})\n\nAPPLICATION RATE: {info['rate']}\nREASON: {info['reason']}\nAPPLICATION TIPS:\n"
                         for i, tip in enumerate(info['tips'][:3], 1):
                             alt += f"{i}. {tip}\n"
                         recommended_fertilizer += alt
                         alternatives.append(code)
                         if len(alternatives) == 2:
                             break
-
                 method_used = "ML Model"
             except Exception as e:
                 print(f"ML Model failed: {e}")
                 recommended_fertilizer = None
 
-        # ── Ollama fallback ──
         if recommended_fertilizer is None and OLLAMA_ENABLED:
             try:
-                prompt = (
-                    f"Recommend 2-3 different fertilizers for:\n"
-                    f"Crop: {cropname}, Soil: {soil}, Temp: {temperature}°C, "
-                    f"N:{nitrogen}, P:{phosphorous}, K:{potassium}"
-                )
+                prompt = f"Recommend 2-3 different fertilizers for:\nCrop: {cropname}, Soil: {soil}, Temp: {temperature}°C, N:{nitrogen}, P:{phosphorous}, K:{potassium}"
                 recommended_fertilizer = call_ollama(prompt)
                 if recommended_fertilizer:
                     fertilizer_code = "ollama"
-                    method_used     = "Ollama AI"
+                    method_used = "Ollama AI"
             except Exception as e:
                 print(f"Ollama failed: {e}")
 
         if recommended_fertilizer is None:
-            return render_template(
-                "FertilizerRecommendation.html",
-                prediction=None, crops=crops_list, soils=soils_list,
-                form_data=request.form,
-                error="❌ Could not generate recommendation."
-            )
+            return render_template("FertilizerRecommendation.html", prediction=None, crops=crops_list, soils=soils_list, form_data=request.form, error="❌ Could not generate recommendation.")
 
-        # ── Save to MongoDB (Fertilizer_Recommendations) ──
         try:
-            doc = new_fertilizer_rec(
-                user_id                 = get_current_user_id(),
-                nitrogen                = nitrogen,
-                phosphorus              = phosphorous,
-                potassium               = potassium,
-                crop_type               = cropname,
-                recommended_fertilizer  = fertilizer_code
-            )
+            doc = new_fertilizer_rec(user_id=get_current_user_id(), nitrogen=nitrogen, phosphorus=phosphorous, potassium=potassium, crop_type=cropname, recommended_fertilizer=fertilizer_code)
             mongo.db.fertilizer_recommendations.insert_one(doc)
         except Exception as e:
             print(f"⚠️  Could not save fertilizer recommendation: {e}")
 
-        return render_template(
-            "Fertilizer-Result.html",
-            prediction=recommended_fertilizer,
-            method=method_used,
-            crops=crops_list,
-            soils=soils_list,
-            form_data=request.form,
-            error=None
-        )
+        return render_template("Fertilizer-Result.html", prediction=recommended_fertilizer, method=method_used, crops=crops_list, soils=soils_list, form_data=request.form, error=None)
 
     except Exception as e:
-        return render_template(
-            "FertilizerRecommendation.html",
-            prediction=None, crops=crops_list, soils=soils_list,
-            form_data=request.form,
-            error=f"❌ Error: {str(e)}"
-        )
+        return render_template("FertilizerRecommendation.html", prediction=None, crops=crops_list, soils=soils_list, form_data=request.form, error=f"❌ Error: {str(e)}")
 
 
 # ╔════════════════════════════════════════════════════════════════════╗
@@ -636,13 +547,8 @@ def recommend_fertilizer():
 @app.route("/predict_yield", methods=["POST"])
 @login_required
 def predict_yield():
-    """Predict crop yield + save to yield_predictions collection"""
     if not YIELD_MODEL_AVAILABLE:
-        return render_template(
-            "YieldPrediction.html",
-            prediction=None, crops=crops, form_data=request.form,
-            error="❌ Yield model not loaded!"
-        )
+        return render_template("YieldPrediction.html", prediction=None, crops=crops, form_data=request.form, error="❌ Yield model not loaded!")
 
     try:
         crop_name  = request.form.get("Crop", "Rice")
@@ -651,7 +557,7 @@ def predict_yield():
         production = float(request.form.get("Production", 50))
         rainfall   = float(request.form.get("Annual_Rainfall", 600))
         fertilizer = float(request.form.get("Fertilizer", 100))
-        pesticide  = float(request.form.get("Pesticide", 50))
+        pesticide_val = float(request.form.get("Pesticide", 50))
 
         area       = max(area, 1)
         production = max(production, 1)
@@ -659,28 +565,22 @@ def predict_yield():
             year = 2025
         rainfall   = max(0, rainfall)
         fertilizer = max(0, fertilizer)
-        pesticide  = max(0, pesticide)
+        pesticide_val = max(0, pesticide_val)
 
-        # Feature engineering
         f_area_log        = np.log1p(area)
         f_production_log  = np.log1p(production)
         f_fertilizer_log  = np.log1p(fertilizer + 1)
-        f_pesticide_log   = np.log1p(pesticide + 1)
-        f_fert_pest       = fertilizer * pesticide
+        f_pesticide_log   = np.log1p(pesticide_val + 1)
+        f_fert_pest       = fertilizer * pesticide_val
         f_area_rain       = area * rainfall
         f_rain_fert       = rainfall * fertilizer
         f_fert_area       = fertilizer / (area + 1)
-        f_pest_area       = pesticide / (area + 1)
+        f_pest_area       = pesticide_val / (area + 1)
         f_prod_area       = production / (area + 1)
         f_area_sq         = area ** 2
         f_rain_sq         = rainfall ** 2
 
-        features = np.array([[
-            year, area, production, rainfall, fertilizer, pesticide,
-            f_area_log, f_production_log, f_fertilizer_log, f_pesticide_log,
-            f_fert_pest, f_area_rain, f_rain_fert, f_fert_area, f_pest_area,
-            f_prod_area, f_area_sq, f_rain_sq
-        ]], dtype=np.float32)
+        features = np.array([[year, area, production, rainfall, fertilizer, pesticide_val, f_area_log, f_production_log, f_fertilizer_log, f_pesticide_log, f_fert_pest, f_area_rain, f_rain_fert, f_fert_area, f_pest_area, f_prod_area, f_area_sq, f_rain_sq]], dtype=np.float32)
 
         features_scaled  = yield_scaler.transform(features)
         yield_prediction = float(yield_model.predict(features_scaled)[0])
@@ -690,76 +590,62 @@ def predict_yield():
         yield_per_acre       = round(yield_prediction / 2.471, 4)
         estimated_production = round(yield_prediction * area, 2)
 
-        # ── Save to MongoDB (Yield_Predictions) ──
         try:
-            doc = new_yield_prediction(
-                user_id         = get_current_user_id(),
-                area            = area,
-                annual_rainfall = rainfall,
-                fertilizer      = fertilizer,
-                pesticide       = pesticide,
-                crop_year       = int(year),
-                predicted_yield = yield_per_hectare,
-                model_version   = "xgboost_federated_v1"
-            )
+            doc = new_yield_prediction(user_id=get_current_user_id(), area=area, annual_rainfall=rainfall, fertilizer=fertilizer, pesticide=pesticide_val, crop_year=int(year), predicted_yield=yield_per_hectare, model_version="xgboost_federated_v1")
             mongo.db.yield_predictions.insert_one(doc)
         except Exception as e:
             print(f"⚠️  Could not save yield prediction: {e}")
 
-        return render_template(
-            "YieldPrediction.html",
-            prediction=yield_per_hectare,
-            crops=crops,
-            form_data=request.form,
-            yield_per_acre=yield_per_acre,
-            production=estimated_production,
-            error=None
-        )
+        return render_template("YieldPrediction.html", prediction=yield_per_hectare, crops=crops, form_data=request.form, yield_per_acre=yield_per_acre, production=estimated_production, error=None)
 
     except Exception as e:
         print(f"❌ Yield Error: {e}")
+        return render_template("YieldPrediction.html", prediction=None, crops=crops, form_data=request.form, error=f"Prediction error: {str(e)}")
+
+
+# ╔════════════════════════════════════════════════════════════════════╗
+# ║          PEST PREDICTION (with Unknown Detection + Camera)        ║
+# ╚════════════════════════════════════════════════════════════════════╝
+
+def _handle_pest_result(save_path, result):
+    """Common handler for pest prediction results."""
+    pest_name  = result["pest_name"]
+    confidence = result["confidence"]
+    is_valid   = result["is_valid"]
+    message    = result.get("message", "")
+
+    try:
+        doc = new_pesticide_rec(
+            user_id               = get_current_user_id(),
+            image_path            = save_path,
+            predicted_pest        = pest_name if is_valid else "unknown",
+            recommended_pesticide = pest_name if is_valid else "unknown",
+            confidence_score      = float(confidence)
+        )
+        mongo.db.pesticide_recommendations.insert_one(doc)
+    except Exception as e:
+        print(f"⚠️  Could not save pesticide recommendation: {e}")
+
+    if is_valid and pest_name != "unknown":
+        template_name = pest_name + ".html"
+        try:
+            return render_template(template_name)
+        except Exception:
+            return render_template("unaptfile.html")
+    else:
+        image_path = "/" + save_path.replace("\\", "/")
         return render_template(
-            "YieldPrediction.html",
-            prediction=None, crops=crops, form_data=request.form,
-            error=f"Prediction error: {str(e)}"
+            "PestNotRecognized.html",
+            image_path=image_path,
+            confidence=confidence,
+            message=message
         )
 
-
-# ╔════════════════════════════════════════════════════════════════════╗
-# ║                    PEST HELPER                                    ║
-# ╚════════════════════════════════════════════════════════════════════╝
-
-def predict_pest(img_path):
-    """Predict pest from image"""
-    img  = tf_image.load_img(img_path, target_size=(64, 64))
-    img  = tf_image.img_to_array(img)
-    img  = np.expand_dims(img, axis=0) / 255.0
-    preds = pest_model.predict(img)
-    return np.argmax(preds)
-
-
-PEST_MAP = {
-    0: "aphids",
-    1: "armyworm",
-    2: "beetle",
-    3: "bollworm",
-    4: "earthworm",
-    5: "grasshopper",
-    6: "mites",
-    7: "mosquito",
-    8: "sawfly",
-    9: "stem borer",
-}
-
-
-# ╔════════════════════════════════════════════════════════════════════╗
-# ║                    PEST PREDICTION                                ║
-# ╚════════════════════════════════════════════════════════════════════╝
 
 @app.route("/predict", methods=["POST"])
 @login_required
 def pest_predict():
-    """Pest prediction + save to pesticide_recommendations collection"""
+    """Pest prediction from uploaded image."""
     if "image" not in request.files:
         return render_template("unaptfile.html")
 
@@ -770,74 +656,127 @@ def pest_predict():
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
 
-    pest_index = predict_pest(filepath)
-    pest_name  = PEST_MAP.get(pest_index, "unknown")
+    if PEST_MODEL_AVAILABLE:
+        result = predict_pest(filepath, pest_model)
+        return _handle_pest_result(filepath, result)
+    else:
+        return render_template("unaptfile.html")
 
-    # ── Save to MongoDB (Pesticide_Recommendations) ──
+
+@app.route("/predict-camera", methods=["POST"])
+@login_required
+def pest_predict_camera():
+    """Pest prediction from camera capture.
+    Camera blob from browser canvas can have RGBA channels,
+    wrong EXIF orientation, or non-standard JPEG encoding.
+    We re-save through PIL to normalize it before prediction.
+    """
+    if "image" not in request.files:
+        return redirect("/PesticideRecommendation.html")
+
+    file = request.files["image"]
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename  = f"pest_camera_{timestamp}.jpg"
+    filepath  = os.path.join(UPLOAD_FOLDER, filename)
+
+    # Sanitize camera image: open with PIL, force RGB, re-save as clean JPEG
     try:
-        doc = new_pesticide_rec(
-            user_id               = get_current_user_id(),
-            image_path            = filepath,
-            predicted_pest        = pest_name,
-            recommended_pesticide = pest_name,      # extend with lookup if needed
-            confidence_score      = 0.0             # update if model returns probability
-        )
-        mongo.db.pesticide_recommendations.insert_one(doc)
+        pil_img = Image.open(file.stream).convert("RGB")
+        pil_img.save(filepath, "JPEG", quality=95)
     except Exception as e:
-        print(f"⚠️  Could not save pesticide recommendation: {e}")
+        print(f"⚠️  Camera image save error: {e}")
+        file.save(filepath)  # fallback to raw save
 
-    return render_template(pest_name + ".html" if pest_name != "unknown" else "unaptfile.html")
+    if PEST_MODEL_AVAILABLE:
+        result = predict_pest(filepath, pest_model)
+        return _handle_pest_result(filepath, result)
+    else:
+        return render_template("unaptfile.html")
 
 
 # ╔════════════════════════════════════════════════════════════════════╗
-# ║                    PLANT DISEASE PREDICTION                       ║
+# ║       PLANT DISEASE PREDICTION (with Unknown Detection + Camera)  ║
 # ╚════════════════════════════════════════════════════════════════════╝
 
-@app.route("/plant-disease-predict", methods=["POST"])
-@login_required
-def plant_disease_predict():
-    """Plant disease prediction + save to disease_predictions collection"""
-    if "image" not in request.files:
-        return render_template("unaptfile.html")
-
-    file = request.files["image"]
-    if file.filename == "":
-        return render_template("unaptfile.html")
-
-    save_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(save_path)
-
-    result     = predict_plant_disease(save_path, plant_model, plant_classes)
+def _handle_plant_disease_result(save_path, result):
+    """Common handler for plant disease prediction results."""
     full_label = result["disease"]
     confidence = result["confidence"]
+    is_valid   = result["is_valid"]
+    message    = result.get("message", "")
 
-    if "___" in full_label:
-        plant, disease = full_label.split("___")
+    if is_valid:
+        if "___" in full_label:
+            plant, disease = full_label.split("___", 1)
+        else:
+            plant   = full_label
+            disease = "Healthy"
+        plant_display   = plant.replace("_", " ").title()
+        disease_display = disease.replace("_", " ").title()
     else:
-        plant   = full_label
-        disease = "Unknown"
+        plant_display   = "Unknown"
+        disease_display = "Unknown"
 
-    # ── Save to MongoDB (Disease_Predictions) ──
     try:
         doc = new_disease_prediction(
-            user_id          = get_current_user_id(),
-            image_path       = save_path,
-            predicted_disease= full_label,
-            confidence_score = float(confidence)
+            user_id=get_current_user_id(),
+            image_path=save_path,
+            predicted_disease=full_label if is_valid else "Unknown",
+            confidence_score=float(confidence)
         )
         mongo.db.disease_predictions.insert_one(doc)
     except Exception as e:
         print(f"⚠️  Could not save disease prediction: {e}")
 
     image_path = "/" + save_path.replace("\\", "/")
-
     return render_template(
         "PlantDiseaseResult.html",
-        plant=plant.title(),
-        disease=disease.replace("_", " ").title(),
+        plant=plant_display,
+        disease=disease_display,
         confidence=confidence,
-        image_path=image_path
+        image_path=image_path,
+        is_valid=is_valid,
+        message=message
     )
+
+
+@app.route("/plant-disease-predict", methods=["POST"])
+@login_required
+def plant_disease_predict():
+    if "image" not in request.files:
+        return redirect("/PlantDisease.html")
+    file = request.files["image"]
+    if file.filename == "":
+        return redirect("/PlantDisease.html")
+
+    save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(save_path)
+    result = predict_plant_disease(save_path, plant_model, plant_classes)
+    return _handle_plant_disease_result(save_path, result)
+
+
+@app.route("/plant-disease-predict-camera", methods=["POST"])
+@login_required
+def plant_disease_predict_camera():
+    if "image" not in request.files:
+        return redirect("/PlantDisease.html")
+    file = request.files["image"]
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename  = f"camera_capture_{timestamp}.jpg"
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    # Sanitize camera image: force RGB, strip EXIF, re-save as clean JPEG
+    try:
+        pil_img = Image.open(file.stream).convert("RGB")
+        pil_img.save(save_path, "JPEG", quality=95)
+    except Exception as e:
+        print(f"⚠️  Camera image save error: {e}")
+        file.save(save_path)
+
+    result = predict_plant_disease(save_path, plant_model, plant_classes)
+    return _handle_plant_disease_result(save_path, result)
 
 
 # ╔════════════════════════════════════════════════════════════════════╗
@@ -847,7 +786,6 @@ def plant_disease_predict():
 @app.errorhandler(404)
 def not_found(error):
     return render_template("error.html", error="Page not found"), 404
-
 
 @app.errorhandler(500)
 def server_error(error):
@@ -867,9 +805,17 @@ if __name__ == "__main__":
     print(f"  Crop Model:     {'✓ Ready' if crop_recommendation_model else '⚠️  Not loaded'}")
     print(f"  ML Fertilizer:  {'✓ Ready' if FERTILIZER_ML_AVAILABLE else '⚠️  Using Ollama'}")
     print(f"  Yield Model:    {'✓ Ready (98% R²)' if YIELD_MODEL_AVAILABLE else '⚠️  Not loaded'}")
-    print(f"  Pest Model:     {'✓ Ready' if pest_model else '⚠️  Not loaded'}")
-    print(f"  Plant Disease:  {'✓ Ready' if plant_model else '⚠️  Not loaded'}")
+    print(f"  Pest Model:     {'✓ Ready (with unknown detection + camera)' if PEST_MODEL_AVAILABLE else '⚠️  Not loaded — fix numpy/TF versions!'}")
+    print(f"  Plant Disease:  {'✓ Ready (with unknown detection + camera)' if plant_model else '⚠️  Not loaded'}")
     print(f"  MongoDB:        ✓ Connected")
+
+    if not PEST_MODEL_AVAILABLE:
+        print(f"\n  ╔══════════════════════════════════════════════════════════╗")
+        print(f"  ║  TO FIX PEST MODEL, run in terminal:                    ║")
+        print(f"  ║  pip install numpy==1.24.3 --force-reinstall            ║")
+        print(f"  ║  pip install tensorflow==2.15.0 --force-reinstall       ║")
+        print(f"  ║  pip install ml-dtypes==0.2.0 --force-reinstall         ║")
+        print(f"  ╚══════════════════════════════════════════════════════════╝")
 
     print(f"\n🔐 AUTHENTICATION:")
     print(f"  ✓ User Registration")

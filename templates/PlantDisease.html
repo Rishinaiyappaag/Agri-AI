@@ -9,6 +9,7 @@
 <li><a href="/yield">Yield Prediction</a></li>
 <li><a href="/logout" style="color: #d32f2f; font-weight: 600;">Logout</a></li>
 {% endblock %}
+
 {% block body %}
 
 <section style="
@@ -16,7 +17,6 @@
     background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
     padding: 80px 0;
 ">
-
   <div class="container">
 
     <!-- Heading -->
@@ -36,12 +36,12 @@
         font-size:18px;
         margin-bottom:40px;
     ">
-      Upload a clear image of a plant leaf to identify the disease accurately
+      Upload a clear image of a plant leaf or use your camera for real-time detection
     </p>
 
     <!-- Upload Card -->
     <div style="
-        max-width:420px;
+        max-width:500px;
         margin:auto;
         background:#ffffff;
         padding:35px;
@@ -50,49 +50,326 @@
         text-align:center;
     ">
 
-      <form action="/plant-disease-predict" method="POST" enctype="multipart/form-data">
-
-        <!-- File Input Box -->
-        <div style="
-            border:2px dashed #81c784;
-            padding:25px;
-            border-radius:15px;
-            margin-bottom:25px;
-            background:#f9fff9;
-        ">
-          <input type="file" name="image" accept="image/png, image/jpeg" required style="
-              font-size:15px;
-              color:#1b5e20;
-            ">
-          <p style="
-              margin-top:12px;
-              font-size:14px;
-              color:#2e7d32;
-          ">
-            Accepted formats: JPG, JPEG, PNG
-          </p>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" style="
+      <!-- Tab Buttons -->
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:25px;">
+        <button onclick="showTab('upload')" id="tab-upload" style="
+            padding:10px 25px;
+            border-radius:20px;
+            border:2px solid #1b5e20;
             background:#1b5e20;
             color:white;
-            font-size:18px;
+            font-size:15px;
             font-weight:600;
-            padding:12px 45px;
-            border:none;
-            border-radius:30px;
             cursor:pointer;
             transition:0.3s;
-          " onmouseover="this.style.background='#2e7d32'" onmouseout="this.style.background='#1b5e20'">
-          🔍 Predict Disease
+        ">
+          📁 Upload Image
         </button>
+        <button onclick="showTab('camera')" id="tab-camera" style="
+            padding:10px 25px;
+            border-radius:20px;
+            border:2px solid #1b5e20;
+            background:white;
+            color:#1b5e20;
+            font-size:15px;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.3s;
+        ">
+          📷 Use Camera
+        </button>
+      </div>
 
-      </form>
+      <!-- ========== UPLOAD TAB ========== -->
+      <div id="upload-section">
+        <form action="/plant-disease-predict" method="POST" enctype="multipart/form-data">
+
+          <!-- File Input Box -->
+          <div style="
+              border:2px dashed #81c784;
+              padding:25px;
+              border-radius:15px;
+              margin-bottom:20px;
+              background:#f9fff9;
+          ">
+            <!-- Image Preview -->
+            <img id="preview-img" src="" alt="" style="
+                display:none;
+                max-width:100%;
+                max-height:200px;
+                border-radius:12px;
+                margin-bottom:15px;
+                border:2px solid #e0f2f1;
+            ">
+            <input type="file" name="image" id="file-input" accept="image/png, image/jpeg" required
+              onchange="previewImage(this)" style="font-size:15px; color:#1b5e20;">
+            <p style="margin-top:12px; font-size:14px; color:#2e7d32;">
+              Accepted formats: JPG, JPEG, PNG
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" style="
+              background:#1b5e20;
+              color:white;
+              font-size:18px;
+              font-weight:600;
+              padding:12px 45px;
+              border:none;
+              border-radius:30px;
+              cursor:pointer;
+              transition:0.3s;
+            " onmouseover="this.style.background='#2e7d32'" onmouseout="this.style.background='#1b5e20'">
+            🔍 Predict Disease
+          </button>
+        </form>
+      </div>
+
+      <!-- ========== CAMERA TAB ========== -->
+      <div id="camera-section" style="display:none;">
+
+        <!-- Video Stream -->
+        <div style="
+            border:2px solid #81c784;
+            border-radius:15px;
+            overflow:hidden;
+            margin-bottom:15px;
+            background:#000;
+            position:relative;
+        ">
+          <video id="camera-video" autoplay playsinline style="
+              width:100%;
+              max-height:300px;
+              object-fit:cover;
+              display:block;
+          "></video>
+
+          <!-- Canvas for capture (hidden) -->
+          <canvas id="camera-canvas" style="display:none;"></canvas>
+
+          <!-- Captured image preview -->
+          <img id="captured-img" src="" alt="" style="
+              display:none;
+              width:100%;
+              max-height:300px;
+              object-fit:contain;
+          ">
+        </div>
+
+        <!-- Camera Controls -->
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button onclick="startCamera()" id="btn-start-cam" style="
+              background:#1565c0;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+              transition:0.3s;
+          ">
+            📷 Start Camera
+          </button>
+
+          <button onclick="capturePhoto()" id="btn-capture" style="
+              display:none;
+              background:#2e7d32;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+              transition:0.3s;
+          ">
+            📸 Capture Photo
+          </button>
+
+          <button onclick="retakePhoto()" id="btn-retake" style="
+              display:none;
+              background:#f57c00;
+              color:white;
+              font-size:16px;
+              font-weight:600;
+              padding:10px 25px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+              transition:0.3s;
+          ">
+            🔄 Retake
+          </button>
+
+          <button onclick="submitCameraImage()" id="btn-predict-cam" style="
+              display:none;
+              background:#1b5e20;
+              color:white;
+              font-size:18px;
+              font-weight:600;
+              padding:10px 30px;
+              border:none;
+              border-radius:25px;
+              cursor:pointer;
+              transition:0.3s;
+          ">
+            🔍 Predict Disease
+          </button>
+        </div>
+
+        <p id="camera-status" style="
+            margin-top:15px;
+            font-size:14px;
+            color:#666;
+        "></p>
+
+        <!-- Hidden form for camera submission -->
+        <form id="camera-form" action="/plant-disease-predict-camera" method="POST" enctype="multipart/form-data"
+          style="display:none;">
+          <input type="file" name="image" id="camera-file-input">
+        </form>
+      </div>
 
     </div>
-
   </div>
 </section>
+
+<script>
+  let cameraStream = null;
+
+  // ===== TAB SWITCHING =====
+  function showTab(tab) {
+    const uploadSection = document.getElementById('upload-section');
+    const cameraSection = document.getElementById('camera-section');
+    const tabUpload = document.getElementById('tab-upload');
+    const tabCamera = document.getElementById('tab-camera');
+
+    if (tab === 'upload') {
+      uploadSection.style.display = 'block';
+      cameraSection.style.display = 'none';
+      tabUpload.style.background = '#1b5e20';
+      tabUpload.style.color = 'white';
+      tabCamera.style.background = 'white';
+      tabCamera.style.color = '#1b5e20';
+      stopCamera();
+    } else {
+      uploadSection.style.display = 'none';
+      cameraSection.style.display = 'block';
+      tabCamera.style.background = '#1b5e20';
+      tabCamera.style.color = 'white';
+      tabUpload.style.background = 'white';
+      tabUpload.style.color = '#1b5e20';
+    }
+  }
+
+  // ===== IMAGE PREVIEW (Upload) =====
+  function previewImage(input) {
+    const preview = document.getElementById('preview-img');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // ===== CAMERA FUNCTIONS =====
+  async function startCamera() {
+    const video = document.getElementById('camera-video');
+    const status = document.getElementById('camera-status');
+
+    try {
+      // Prefer rear camera on mobile
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      video.srcObject = cameraStream;
+      video.style.display = 'block';
+
+      document.getElementById('captured-img').style.display = 'none';
+      document.getElementById('btn-start-cam').style.display = 'none';
+      document.getElementById('btn-capture').style.display = 'inline-block';
+      document.getElementById('btn-retake').style.display = 'none';
+      document.getElementById('btn-predict-cam').style.display = 'none';
+      status.textContent = 'Camera is active. Point at a plant leaf and capture.';
+      status.style.color = '#2e7d32';
+    } catch (err) {
+      status.textContent = 'Could not access camera. Please allow camera permission or use Upload instead.';
+      status.style.color = '#c62828';
+      console.error('Camera error:', err);
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function capturePhoto() {
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const capturedImg = document.getElementById('captured-img');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    capturedImg.src = dataUrl;
+    capturedImg.style.display = 'block';
+    video.style.display = 'none';
+
+    stopCamera();
+
+    document.getElementById('btn-capture').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'inline-block';
+    document.getElementById('btn-predict-cam').style.display = 'inline-block';
+    document.getElementById('camera-status').textContent = 'Photo captured! Click Predict or Retake.';
+  }
+
+  function retakePhoto() {
+    document.getElementById('captured-img').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'none';
+    document.getElementById('btn-predict-cam').style.display = 'none';
+    startCamera();
+  }
+
+  function submitCameraImage() {
+    const canvas = document.getElementById('camera-canvas');
+    const status = document.getElementById('camera-status');
+
+    status.textContent = 'Analyzing image...';
+    status.style.color = '#1565c0';
+
+    // Convert canvas to blob and submit via form
+    canvas.toBlob(function (blob) {
+      const formData = new FormData();
+      formData.append('image', blob, 'camera_capture.jpg');
+
+      // Submit via fetch to the same prediction endpoint
+      fetch('/plant-disease-predict-camera', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.text())
+        .then(html => {
+          // Replace the page with the result
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(err => {
+          status.textContent = 'Error processing image. Please try again.';
+          status.style.color = '#c62828';
+          console.error(err);
+        });
+    }, 'image/jpeg', 0.9);
+  }
+</script>
 
 {% endblock %}

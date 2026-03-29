@@ -1,0 +1,28 @@
+{
+  "class_names": [
+    "aphids",
+    "armyworm",
+    "beetle",
+    "bollworm",
+    "earthworm",
+    "grasshopper",
+    "mites",
+    "mosquito",
+    "sawfly",
+    "stem_borer"
+  ],
+  "class_indices": {
+    "aphids": 0,
+    "armyworm": 1,
+    "beetle": 2,
+    "bollworm": 3,
+    "earthworm": 4,
+    "grasshopper": 5,
+    "mites": 6,
+    "mosquito": 7,
+    "sawfly": 8,
+    "stem_borer": 9
+  },
+  "img_size": 128,
+  "num_classes": 10
+}

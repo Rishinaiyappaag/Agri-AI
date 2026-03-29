@@ -1,3 +1,4 @@
+<!--crop-result.html-->
 {% extends "layout.html" %}
 
 {% block nav %}
@@ -17,330 +18,236 @@
     min-height: 100vh;
     padding: 80px 0 40px;
 ">
-
     <div class="container">
 
-        <!-- Main Heading -->
+        <!-- Heading -->
         <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="
-                font-size: 48px;
-                color: #1b5e20;
-                font-weight: 700;
-                margin-bottom: 10px;
-                letter-spacing: -0.5px;
-            ">
+            <h1 style="font-size:44px; color:#1b5e20; font-weight:700; margin-bottom:10px;">
                 🌾 Recommended Crop
             </h1>
-            <p style="
-                font-size: 18px;
-                color: #1565c0;
-                font-weight: 500;
-            ">
+            <p style="font-size:18px; color:#1565c0; font-weight:500;">
                 AI-Powered Recommendation Based on Your Farm Conditions
             </p>
         </div>
 
         <!-- Result Card -->
         <div style="
-            max-width: 950px;
-            margin: auto;
-            background: #ffffff;
-            border-radius: 22px;
-            padding: 45px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-            border-top: 5px solid #2e7d32;
-        ">
+        max-width:950px; margin:auto; background:#fff;
+        border-radius:22px; padding:45px;
+        box-shadow:0 15px 40px rgba(0,0,0,0.12);
+        border-top:5px solid #2e7d32;
+    ">
 
-            <!-- Crop Name Section -->
+            <!-- Crop Name -->
             <div style="
-                text-align: center;
-                padding: 30px;
-                background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-                border-radius: 18px;
-                margin-bottom: 30px;
-            ">
-                <h2 style="
-                    color: #666;
-                    font-weight: 600;
-                    margin-bottom: 15px;
-                    font-size: 18px;
-                ">
+          text-align:center; padding:30px;
+          background:linear-gradient(135deg, #e8f5e9, #f1f8e9);
+          border-radius:18px; margin-bottom:30px;
+      ">
+                <h2 style="color:#666; font-weight:600; margin-bottom:15px; font-size:18px;">
                     Optimal Crop for Your Conditions:
                 </h2>
-                <h1 style="
-                    color: #2e7d32;
-                    font-weight: 800;
-                    font-size: 52px;
-                    margin: 0;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                ">
+                <h1 style="color:#2e7d32; font-weight:800; font-size:52px; margin:0; text-transform:uppercase;">
                     {{ prediction }}
                 </h1>
             </div>
 
             <!-- Crop Image -->
-            <div style="
-                text-align: center;
-                margin: 35px 0;
-            ">
+            <div style="text-align:center; margin:35px 0;">
                 <img src="{{ url_for('static', filename=pred) }}" alt="{{ prediction }}" style="
-                    width: 100%;
-                    max-width: 700px;
-                    height: auto;
-                    border-radius: 18px;
-                    box-shadow: 0 10px 30px rgba(46,125,50,0.25);
-                    border: 3px solid #e8f5e9;
-                    transition: transform 0.3s ease;
-                ">
+            width:100%; max-width:700px; height:auto;
+            border-radius:18px; box-shadow:0 10px 30px rgba(46,125,50,0.25);
+            border:3px solid #e8f5e9;
+        ">
             </div>
 
-            <!-- Info Cards -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- YOUR INPUT VALUES vs IDEAL RANGE FOR THIS CROP        -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            {% if input_values and crop_info %}
             <div style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin: 35px 0;
-            ">
-                <!-- Why This Crop -->
+          background:linear-gradient(135deg, #e3f2fd, #bbdefb);
+          padding:30px; border-radius:18px;
+          border-left:5px solid #1565c0;
+          margin-bottom:30px;
+      ">
+                <h3 style="color:#1565c0; font-weight:700; font-size:20px; margin-bottom:20px; text-align:center;">
+                    📊 Why {{ prediction }} Is Recommended — Your Values vs Ideal Range
+                </h3>
+
+                <table style="width:100%; border-collapse:collapse; font-size:15px;">
+                    <thead>
+                        <tr style="background:#1565c0; color:white;">
+                            <th style="padding:12px 15px; text-align:left; border-radius:8px 0 0 0;">Parameter</th>
+                            <th style="padding:12px 15px; text-align:center;">Your Value</th>
+                            <th style="padding:12px 15px; text-align:center;">Ideal Range for {{ prediction }}</th>
+                            <th style="padding:12px 15px; text-align:center; border-radius:0 8px 0 0;">Match</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set param_map = {
+                        'N': {'label': 'Nitrogen (N)', 'unit': 'mg/kg', 'key': 'N'},
+                        'P': {'label': 'Phosphorous (P)', 'unit': 'mg/kg', 'key': 'P'},
+                        'K': {'label': 'Potassium (K)', 'unit': 'mg/kg', 'key': 'K'},
+                        'temperature': {'label': 'Temperature', 'unit': '°C', 'key': 'temperature'},
+                        'humidity': {'label': 'Humidity', 'unit': '%', 'key': 'humidity'},
+                        'ph': {'label': 'Soil pH', 'unit': '', 'key': 'ph'},
+                        'rainfall': {'label': 'Rainfall', 'unit': 'mm', 'key': 'rainfall'}
+                        } %}
+
+                        {% for param_key, param in param_map.items() %}
+                        {% set user_val = input_values.get(param_key, 0) %}
+                        {% set info = crop_info.get(param.key, {}) %}
+                        {% set min_val = info.get('min', 0) %}
+                        {% set max_val = info.get('max', 0) %}
+                        {% set avg_val = info.get('avg', 0) %}
+
+                        {% if user_val >= min_val and user_val <= max_val %} {% set match_icon='✅' %} {% set
+                            row_bg='#e8f5e9' %} {% elif user_val>= min_val * 0.8 and user_val <= max_val * 1.2 %} {% set
+                                match_icon='🟡' %} {% set row_bg='#fff9e6' %} {% else %} {% set match_icon='🔴' %} {%
+                                set row_bg='#fce4ec' %} {% endif %} <tr
+                                style="background:{{ row_bg }}; border-bottom:1px solid #e0e0e0;">
+                                <td style="padding:12px 15px; font-weight:600; color:#333;">
+                                    {{ param.label }}
+                                </td>
+                                <td style="padding:12px 15px; text-align:center; font-weight:700; color:#1565c0;">
+                                    {{ user_val }} {{ param.unit }}
+                                </td>
+                                <td style="padding:12px 15px; text-align:center; color:#555;">
+                                    {{ min_val }} – {{ max_val }} {{ param.unit }}
+                                    <br><span style="font-size:12px; color:#888;">(avg: {{ avg_val }})</span>
+                                </td>
+                                <td style="padding:12px 15px; text-align:center; font-size:20px;">
+                                    {{ match_icon }}
+                                </td>
+                                </tr>
+                                {% endfor %}
+                    </tbody>
+                </table>
+
+                <div style="margin-top:15px; font-size:13px; color:#555; text-align:center;">
+                    ✅ Within ideal range &nbsp; | &nbsp; 🟡 Close to range (±20%) &nbsp; | &nbsp; 🔴 Outside range
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Why This Crop + Key Benefits -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:35px 0;">
                 <div style="
-                    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-                    padding: 25px;
-                    border-radius: 15px;
-                    border-left: 4px solid #1565c0;
-                ">
-                    <h3 style="
-                        color: #1565c0;
-                        font-weight: 700;
-                        margin-bottom: 12px;
-                        font-size: 18px;
-                    ">
+            background:linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding:25px; border-radius:15px; border-left:4px solid #1565c0;
+        ">
+                    <h3 style="color:#1565c0; font-weight:700; margin-bottom:12px; font-size:18px;">
                         ✅ Why This Crop?
                     </h3>
-                    <p style="
-                        color: #333;
-                        font-size: 15px;
-                        line-height: 1.8;
-                        margin: 0;
-                    ">
-                        This crop is perfectly suited for your soil nutrients, climate conditions, and rainfall values.
-                        Our AI model analyzed your parameters to provide the best recommendation.
+                    <p style="color:#333; font-size:15px; line-height:1.8; margin:0;">
+                        Based on your soil nutrients (N={{ input_values.N if input_values else '—' }},
+                        P={{ input_values.P if input_values else '—' }},
+                        K={{ input_values.K if input_values else '—' }}),
+                        {{ input_values.rainfall if input_values else '—' }}mm rainfall,
+                        {{ input_values.temperature if input_values else '—' }}°C temperature,
+                        and pH {{ input_values.ph if input_values else '—' }},
+                        <b>{{ prediction }}</b> is the best match from our AI analysis of 2200+ agricultural records.
                     </p>
                 </div>
 
-                <!-- Key Benefits -->
                 <div style="
-                    background: linear-gradient(135deg, #f1f8e9, #dcedc8);
-                    padding: 25px;
-                    border-radius: 15px;
-                    border-left: 4px solid #2e7d32;
-                ">
-                    <h3 style="
-                        color: #2e7d32;
-                        font-weight: 700;
-                        margin-bottom: 12px;
-                        font-size: 18px;
-                    ">
+            background:linear-gradient(135deg, #f1f8e9, #dcedc8);
+            padding:25px; border-radius:15px; border-left:4px solid #2e7d32;
+        ">
+                    <h3 style="color:#2e7d32; font-weight:700; margin-bottom:12px; font-size:18px;">
                         🎯 Key Benefits
                     </h3>
-                    <ul style="
-                        color: #333;
-                        font-size: 15px;
-                        margin: 0;
-                        padding-left: 20px;
-                    ">
-                        <li style="margin-bottom: 8px;">Better yield potential</li>
-                        <li style="margin-bottom: 8px;">Optimal nutrient utilization</li>
-                        <li style="margin-bottom: 8px;">Climate-resistant variety</li>
-                        <li>High market demand</li>
+                    <ul style="color:#333; font-size:15px; margin:0; padding-left:20px;">
+                        <li style="margin-bottom:8px;">Conditions match {{ prediction }}'s ideal growing range</li>
+                        <li style="margin-bottom:8px;">Better yield potential with current soil nutrients</li>
+                        <li style="margin-bottom:8px;">Climate-compatible for your temperature & humidity</li>
+                        <li>Rainfall level suits this crop's water needs</li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Confidence Score -->
+            <!-- Confidence -->
             <div style="
-                background: #fff9e6;
-                padding: 25px;
-                border-radius: 15px;
-                border-left: 4px solid #ff9800;
-                margin-bottom: 30px;
-            ">
-                <h3 style="
-                    color: #f57c00;
-                    font-weight: 700;
-                    margin-bottom: 12px;
-                    font-size: 18px;
-                ">
-                    📊 AI Confidence: 95%
+          background:#fff9e6; padding:25px; border-radius:15px;
+          border-left:4px solid #ff9800; margin-bottom:30px;
+      ">
+                <h3 style="color:#f57c00; font-weight:700; margin-bottom:12px; font-size:18px;">
+                    📊 AI Model: Stacking Ensemble (XGBoost + Random Forest + Extra Trees + KNN)
                 </h3>
-                <p style="
-                    color: #333;
-                    font-size: 15px;
-                    margin: 0;
-                ">
-                    Based on comprehensive analysis of your NPK levels, temperature, humidity, pH, and rainfall data.
+                <p style="color:#333; font-size:15px; margin:0;">
+                    Trained on 2,200 agricultural samples across 22 crops.
+                    The model analyzed your NPK levels, temperature, humidity, pH, and rainfall
+                    to find the crop whose ideal growing conditions best match your inputs.
                 </p>
             </div>
 
-            <!-- Download Report Section -->
+            <!-- Download Report -->
             <div style="
-                background: linear-gradient(135deg, #f3e5f5, #ede7f6);
-                padding: 25px;
-                border-radius: 15px;
-                border-left: 4px solid #7b1fa2;
-                margin-bottom: 30px;
-                text-align: center;
-            ">
-                <h3 style="
-                    color: #7b1fa2;
-                    font-weight: 700;
-                    margin-bottom: 15px;
-                    font-size: 18px;
-                ">
+          background:linear-gradient(135deg, #f3e5f5, #ede7f6);
+          padding:25px; border-radius:15px; border-left:4px solid #7b1fa2;
+          margin-bottom:30px; text-align:center;
+      ">
+                <h3 style="color:#7b1fa2; font-weight:700; margin-bottom:15px; font-size:18px;">
                     📄 Download Your Recommendation Report
                 </h3>
-                <p style="
-                    color: #666;
-                    font-size: 14px;
-                    margin-bottom: 15px;
-                ">
-                    Get a detailed report with crop analysis and recommendations
-                </p>
                 <button onclick="generateAndDownloadReport()" style="
-                    background: linear-gradient(135deg, #7b1fa2, #5e35b1);
-                    color: white;
-                    padding: 12px 30px;
-                    border: none;
-                    border-radius: 25px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    font-size: 15px;
-                    box-shadow: 0 4px 15px rgba(123,31,162,0.3);
-                    transition: all 0.3s ease;
-                ">
+            background:linear-gradient(135deg, #7b1fa2, #5e35b1);
+            color:white; padding:12px 30px; border:none; border-radius:25px;
+            font-weight:600; cursor:pointer; font-size:15px;
+            box-shadow:0 4px 15px rgba(123,31,162,0.3);
+        ">
                     📥 Download Report
                 </button>
             </div>
 
             <!-- Next Steps -->
-            <div style="
-                background: #f5f5f5;
-                padding: 25px;
-                border-radius: 15px;
-                margin-bottom: 30px;
-            ">
-                <h3 style="
-                    color: #333;
-                    font-weight: 700;
-                    margin-bottom: 15px;
-                    font-size: 18px;
-                ">
+            <div style="background:#f5f5f5; padding:25px; border-radius:15px; margin-bottom:30px;">
+                <h3 style="color:#333; font-weight:700; margin-bottom:15px; font-size:18px;">
                     📋 Next Steps
                 </h3>
-                <ol style="
-                    color: #555;
-                    font-size: 15px;
-                    line-height: 1.9;
-                    margin: 0;
-                    padding-left: 20px;
-                ">
-                    <li style="margin-bottom: 10px;"><strong>Get Fertilizer Advice:</strong> Optimize nutrients for {{
+                <ol style="color:#555; font-size:15px; line-height:1.9; margin:0; padding-left:20px;">
+                    <li style="margin-bottom:10px;"><strong>Get Fertilizer Advice:</strong> Optimize nutrients for {{
                         prediction }}</li>
-                    <li style="margin-bottom: 10px;"><strong>Yield Prediction:</strong> Estimate your crop production
+                    <li style="margin-bottom:10px;"><strong>Yield Prediction:</strong> Estimate your crop production
                     </li>
-                    <li style="margin-bottom: 10px;"><strong>Pest Management:</strong> Prevent common crop diseases</li>
+                    <li style="margin-bottom:10px;"><strong>Pest Management:</strong> Prevent common crop diseases</li>
                     <li><strong>Plan Planting:</strong> Use this data for farm scheduling</li>
                 </ol>
             </div>
 
             <!-- Action Buttons -->
-            <div style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                margin-top: 30px;
-            ">
-                <!-- Button 1: Try Again -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:30px;">
                 <a href="/CropRecommendation.html" style="
-                    background: linear-gradient(135deg, #1b5e20, #0d3b1a);
-                    color: white;
-                    padding: 15px 30px;
-                    border-radius: 30px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    font-size: 16px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(27,94,32,0.3);
-                    transition: all 0.3s ease;
-                    display: block;
-                ">
-                    🔁 Try Another Crop
-                </a>
-
-                <!-- Button 2: Fertilizer -->
+            background:linear-gradient(135deg, #1b5e20, #0d3b1a);
+            color:white; padding:15px 30px; border-radius:30px;
+            text-decoration:none; font-weight:600; font-size:16px;
+            text-align:center; display:block;
+        ">🔁 Try Another Crop</a>
                 <a href="/FertilizerRecommendation.html" style="
-                    background: linear-gradient(135deg, #1565c0, #0d47a1);
-                    color: white;
-                    padding: 15px 30px;
-                    border-radius: 30px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    font-size: 16px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(21,101,192,0.3);
-                    transition: all 0.3s ease;
-                    display: block;
-                ">
-                    🧪 Get Fertilizer Advice
-                </a>
+            background:linear-gradient(135deg, #1565c0, #0d47a1);
+            color:white; padding:15px 30px; border-radius:30px;
+            text-decoration:none; font-weight:600; font-size:16px;
+            text-align:center; display:block;
+        ">🧪 Get Fertilizer Advice</a>
             </div>
-
-            <!-- Additional Action Buttons -->
-            <div style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                margin-top: 15px;
-            ">
-                <!-- Button 3: Yield -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
                 <a href="/yield" style="
-                    background: linear-gradient(135deg, #f57c00, #e65100);
-                    color: white;
-                    padding: 15px 30px;
-                    border-radius: 30px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    font-size: 16px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(245,124,0,0.3);
-                    transition: all 0.3s ease;
-                    display: block;
-                ">
-                    📊 Predict Yield
-                </a>
-
-                <!-- Button 4: Pest -->
+            background:linear-gradient(135deg, #f57c00, #e65100);
+            color:white; padding:15px 30px; border-radius:30px;
+            text-decoration:none; font-weight:600; font-size:16px;
+            text-align:center; display:block;
+        ">📊 Predict Yield</a>
                 <a href="/PesticideRecommendation.html" style="
-                    background: linear-gradient(135deg, #d32f2f, #c62828);
-                    color: white;
-                    padding: 15px 30px;
-                    border-radius: 30px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    font-size: 16px;
-                    text-align: center;
-                    box-shadow: 0 4px 15px rgba(211,47,47,0.3);
-                    transition: all 0.3s ease;
-                    display: block;
-                ">
-                    🐛 Pest Management
-                </a>
+            background:linear-gradient(135deg, #d32f2f, #c62828);
+            color:white; padding:15px 30px; border-radius:30px;
+            text-decoration:none; font-weight:600; font-size:16px;
+            text-align:center; display:block;
+        ">🐛 Pest Management</a>
             </div>
 
         </div>
-
     </div>
-
 </section>
 
 <script>
@@ -348,181 +255,72 @@
         const cropName = "{{ prediction }}";
         const today = new Date();
         const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const timeStr = today.toLocaleTimeString();
+
+        let inputSection = "";
+        {% if input_values %}
+        inputSection = `
+YOUR INPUT VALUES:
+  Nitrogen (N):    {{ input_values.N }} mg/kg
+  Phosphorous (P): {{ input_values.P }} mg/kg
+  Potassium (K):   {{ input_values.K }} mg/kg
+  Temperature:     {{ input_values.temperature }}°C
+  Humidity:        {{ input_values.humidity }}%
+  Soil pH:         {{ input_values.ph }}
+  Rainfall:        {{ input_values.rainfall }} mm
+`;
+        {% endif %}
+
+        {% if crop_info %}
+        let idealSection = `
+IDEAL RANGE FOR ${cropName.toUpperCase()}:
+  {% for key, val in crop_info.items() %}{{ key }}: {{ val.min }} - {{ val.max }} (avg: {{ val.avg }})
+  {% endfor %}`;
+        {% else %}
+        let idealSection = "";
+        {% endif %}
 
         const reportText = `================================================================================
                     CROP RECOMMENDATION REPORT
 ================================================================================
 
 RECOMMENDED CROP: ${cropName.toUpperCase()}
-
 Report Generated: ${dateStr}
-Time: ${timeStr}
 
+================================================================================
+                         INPUT ANALYSIS
+================================================================================
+${inputSection}
+${idealSection}
 ================================================================================
                          RECOMMENDATION SUMMARY
 ================================================================================
 
-Based on comprehensive AI analysis of your farm conditions, ${cropName} has been
-identified as the optimal crop for your specific situation.
-
-CONFIDENCE LEVEL: 95%
-
-This recommendation was generated by analyzing:
-- Soil Nutrients (NPK levels)
-- Temperature and Climate
-- Humidity and Rainfall
-- pH Level
-- Geographic and Regional Factors
-
-================================================================================
-                         WHY ${cropName.toUpperCase()}?
-================================================================================
-
-1. OPTIMAL NUTRIENT MATCH
-   - Your soil nutrient levels are perfectly suited for this crop
-   - Maximum nutrient utilization efficiency
-   - Better crop performance expected
-
-2. CLIMATE COMPATIBILITY
-   - Temperature ranges align with crop requirements
-   - Humidity and rainfall patterns are favorable
-   - Lower risk of climate-related stress
-
-3. SOIL CONDITIONS
-   - pH level is in the optimal range
-   - Soil texture and structure are suitable
-   - Good drainage and water retention balance
-
-4. MARKET ADVANTAGES
-   - High demand in current market
-   - Good price stability
-   - Growing export opportunities
-
-================================================================================
-                         KEY BENEFITS
-================================================================================
-
-✓ Better yield potential (20-30% higher compared to unsuitable crops)
-✓ Optimal nutrient utilization
-✓ Climate-resistant variety
-✓ High market demand
-✓ Lower input costs
-✓ Sustainable farming approach
+Based on AI analysis of your farm conditions, ${cropName} has been identified
+as the optimal crop. The model (Stacking Ensemble: XGBoost + Random Forest +
+Extra Trees + KNN) was trained on 2,200+ agricultural records across 22 crops.
 
 ================================================================================
                          NEXT STEPS
 ================================================================================
 
-1. GET FERTILIZER ADVICE
-   Use our Fertilizer Recommendation system to optimize nutrients for ${cropName}
-
-2. YIELD PREDICTION
-   Estimate your potential production using our Yield Prediction model
-
-3. PEST MANAGEMENT
-   Plan disease prevention specific to ${cropName}
-
-4. FARM SCHEDULING
-   Use this recommendation for planting schedule planning
+1. Use Fertilizer Recommendation to optimize nutrients for ${cropName}
+2. Use Yield Prediction to estimate production
+3. Use Pest Management for disease prevention
+4. Plan planting schedule based on this recommendation
 
 ================================================================================
-                    RECOMMENDATIONS & TIPS
-================================================================================
-
-• Prepare soil beds 2-3 weeks before planting
-• Use quality seeds from certified sources
-• Maintain proper spacing for optimal growth
-• Monitor soil moisture regularly
-• Apply recommended fertilizers at correct time
-• Practice crop rotation for soil health
-• Keep records of yield and inputs
-
-================================================================================
-                     AGRI AI SYSTEM FEATURES
-================================================================================
-
-✓ Crop Recommendation - Optimal crop selection
-✓ Fertilizer Advice - 2-3 recommendations per crop
-✓ Yield Prediction - Production estimates (98% accuracy)
-✓ Pest Management - Disease prevention
-✓ Plant Disease Detection - Leaf analysis
-✓ AI-Powered Analysis - Machine learning models
-
-================================================================================
-                     DISCLAIMER
-================================================================================
-
-This recommendation is based on AI analysis of provided farm parameters.
-For site-specific implementation, consult with local agricultural experts.
-
-Generated by: AGRI AI - Advanced Agricultural Recommendation System
-Version: 1.0 | Status: Production Ready
-
+Generated by: AGRI AI — AI Driven Precision Agriculture System
 ================================================================================`;
 
-        try {
-            // Create blob
-            const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
-
-            // Create download link
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = cropName + '_Crop_Recommendation_Report.txt';
-
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Cleanup
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-
-            // Show success message
-            alert('✅ Report downloaded successfully!\n\nFile: ' + cropName + '_Crop_Recommendation_Report.txt\n\nCheck your Downloads folder.');
-
-        } catch (error) {
-            console.error('Error:', error);
-            // Fallback method
-            downloadReportFallback(cropName, reportText);
-        }
-    }
-
-    function downloadReportFallback(cropName, text) {
-        try {
-            const link = document.createElement('a');
-            link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
-            link.download = cropName + '_Report.txt';
-            link.click();
-            alert('✅ Report downloaded!\n\nFile: ' + cropName + '_Report.txt');
-        } catch (e) {
-            alert('⚠️ Download not working in your browser.\n\nPlease use Chrome, Firefox, or Edge.');
-        }
+        const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = cropName + '_Crop_Report.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 100);
     }
 </script>
-
-<!-- Hover Effects -->
-<style>
-    a[href*="CropRecommendation"],
-    a[href*="FertilizerRecommendation"],
-    a[href*="/yield"],
-    a[href*="PesticideRecommendation"] {
-        transition: all 0.3s ease !important;
-    }
-
-    a[href*="CropRecommendation"]:hover,
-    a[href*="FertilizerRecommendation"]:hover,
-    a[href*="/yield"]:hover,
-    a[href*="PesticideRecommendation"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(123, 31, 162, 0.4) !important;
-    }
-</style>
 
 {% endblock %}
